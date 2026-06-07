@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript DOM — מצגת לימודית</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg-card: #FFFFFF;
+    --color-primary: #0F6F6F;
+    --color-bronze: #B08D57;
+    --color-text: #1A1A1A;
+    --color-bg-gradient-start: #0a4a4a;
+    --color-bg-gradient-end: #000000;
+    --color-code-bg: #f4f8f8;
+    --color-code-border: #0F6F6F;
+    --color-highlight: #e8f4f4;
+    --color-compare: #fdf6ec;
+    --color-compare-border: #B08D57;
+    --shadow: 0 8px 40px rgba(0,0,0,0.25);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Assistant', sans-serif;
+    background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--color-text);
+  }
+
+  .presentation-wrapper {
+    width: 100%;
+    max-width: 860px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .slide-container {
+    width: 100%;
+    position: relative;
+  }
+
+  .slide {
+    display: none;
+    background: var(--color-bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 52px;
+    animation: slideIn 0.35s ease;
+    min-height: 480px;
+  }
+
+  .slide.active {
+    display: block;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-number {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-primary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+    line-height: 1.3;
+    border-bottom: 2px solid var(--color-highlight);
+    padding-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin-bottom: 14px;
+  }
+
+  ul {
+    padding-right: 22px;
+    margin-bottom: 16px;
+  }
+
+  ul li {
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--color-text);
+    margin-bottom: 5px;
+  }
+
+  .code-block {
+    background: var(--color-code-bg);
+    border-right: 4px solid var(--color-code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 16px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #1a3a3a;
+    white-space: pre;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+
+  .compare-box {
+    background: var(--color-compare);
+    border-right: 4px solid var(--color-compare-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #4a3000;
+  }
+
+  .compare-box strong {
+    color: var(--color-bronze);
+    font-weight: 700;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--color-highlight);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .note {
+    background: #f0f9f9;
+    border: 1px solid #b2d8d8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    color: #0a4040;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* Navigation */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .nav-btn {
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: 'Assistant', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    min-width: 110px;
+  }
+
+  .nav-btn:hover {
+    background: #0a5555;
+    transform: translateY(-1px);
+  }
+
+  .nav-btn:disabled {
+    background: #a0b8b8;
+    cursor: default;
+    transform: none;
+  }
+
+  .progress-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--color-bronze);
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 18px 0 8px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+
+  @media (max-width: 600px) {
+    .slide { padding: 28px 22px; }
+    h2 { font-size: 22px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="presentation-wrapper">
+  <div class="slide-container">
+
+    <!-- Slide 1 -->
+    <div class="slide active" id="slide-1">
+      <div class="slide-number">שקופית 1 מתוך 9</div>
+      <div class="tag">מבוא</div>
+      <h2>מבוא ל-DOM</h2>
+      <p>
+        ה-DOM (Document Object Model) הוא ייצוג של מסמך HTML כמבנה עץ של אובייקטים.
+        כאשר הדפדפן טוען דף HTML, הוא מפרש את הקוד ובונה מבנה נתונים בזיכרון —
+        עץ של צמתים (nodes) — שכל אחד מהם מייצג תגית, טקסט או תכונה.
+      </p>
+      <p>
+        JavaScript ניגש לעץ זה דרך אובייקט גלובלי בשם <strong>document</strong>,
+        ומאפשר לקרוא, לשנות, להוסיף ולמחוק אלמנטים באופן דינמי, ללא טעינה מחדש של הדף.
+      </p>
+      <div class="code-block">// HTML:
+&lt;p id="greeting"&gt;שלום עולם&lt;/p&gt;
+
+// JavaScript — גישה לאלמנט:
+const el = document.getElementById("greeting");
+console.log(el.innerText); // "שלום עולם"</div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C# (WinForms / WPF) גישה לרכיב UI נעשית דרך שם משתנה שמוגדר בקובץ ה-Designer:<br>
+        <code>this.lblGreeting.Text = "שלום";</code><br>
+        ב-JS גישה לאלמנט נעשית דרך ה-DOM בזמן ריצה, לפי מזהה (id) או בורר CSS.
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" id="slide-2">
+      <div class="slide-number">שקופית 2 מתוך 9</div>
+      <div class="tag">בחירת אלמנטים</div>
+      <h2>בחירת אלמנטים ב-DOM — מבט כללי</h2>
+      <p>
+        על מנת לשנות תוכן, סגנון או התנהגות של אלמנט, יש תחילה <strong>לבחור אותו</strong>
+        ולאחסן אותו במשתנה. JavaScript מציע מספר שיטות לכך.
+      </p>
+      <ul>
+        <li><strong>בחירת אלמנט יחיד</strong> — מחזירה אובייקט אחד (או null)</li>
+        <li><strong>בחירת קבוצת אלמנטים</strong> — מחזירה אוסף (NodeList / HTMLCollection)</li>
+      </ul>
+      <div class="two-col">
+        <div>
+          <h3>בחירה יחידה</h3>
+          <div class="code-block">getElementById("id")
+querySelector(".cls")</div>
+        </div>
+        <div>
+          <h3>בחירה מרובה</h3>
+          <div class="code-block">querySelectorAll(".cls")
+getElementsByClassName()</div>
+        </div>
+      </div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C# (WPF) ניתן למצוא אלמנט לפי שם:<br>
+        <code>FindName("myButton") as Button</code><br>
+        ב-JS הבחירה מתבצעת בזמן ריצה לפי id, tag, class, או כל בורר CSS אחר.
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" id="slide-3">
+      <div class="slide-number">שקופית 3 מתוך 9</div>
+      <div class="tag">בחירה יחידה</div>
+      <h2>בחירת אלמנט בודד</h2>
+      <p>יש שתי שיטות עיקריות לבחירת אלמנט בודד מה-DOM:</p>
+      <h3>getElementById</h3>
+      <div class="code-block">// HTML: &lt;div id="box"&gt;תוכן&lt;/div&gt;
+
+const el = document.getElementById("box");
+// מחזיר את האלמנט עם id="box", או null אם לא קיים</div>
+      <h3>querySelector</h3>
+      <div class="code-block">// בחירה לפי id:
+const el1 = document.querySelector("#box");
+
+// בחירה לפי class:
+const el2 = document.querySelector(".card");
+
+// בחירה לפי תגית:
+const el3 = document.querySelector("h1");</div>
+      <ul>
+        <li><strong>getElementById</strong> — מהיר יותר, אך עובד רק עם id</li>
+        <li><strong>querySelector</strong> — גמיש יותר, תומך בכל בורר CSS, מחזיר את האלמנט הראשון שנמצא</li>
+      </ul>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C# (WinForms) רכיב ניגש ישירות בשמו: <code>button1.Text = "לחץ";</code><br>
+        ב-JS יש לבצע בחירה דינמית לפני כל גישה לאלמנט.
+      </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide" id="slide-4">
+      <div class="slide-number">שקופית 4 מתוך 9</div>
+      <div class="tag">מאפיינים</div>
+      <h2>עבודה עם מאפיינים של אלמנטים</h2>
+      <p>לאחר בחירת אלמנט, ניתן לקרוא ולשנות את תכונותיו המרכזיות:</p>
+      <div class="code-block">const el = document.getElementById("title");
+
+// קריאת טקסט:
+console.log(el.innerText);
+
+// שינוי טקסט:
+el.innerText = "כותרת חדשה";
+
+// שינוי HTML פנימי:
+el.innerHTML = "&lt;strong&gt;מודגש&lt;/strong&gt;";
+
+// קבלת / שינוי ערך של input:
+const input = document.getElementById("nameInput");
+const val = input.value;
+input.value = "ברירת מחדל";</div>
+      <div class="note">
+        <strong>הבדל חשוב — innerText לעומת innerHTML:</strong><br>
+        <code>innerText</code> מטפל בטקסט בלבד — HTML tags יוצגו כטקסט רגיל ולא יפורשו.<br>
+        <code>innerHTML</code> מאפשר הכנסת תגיות HTML, אך דורש זהירות: קלט לא מאומת עלול לגרום לפגיעות XSS.
+      </div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C# WinForms: <code>label1.Text = "שלום";</code><br>
+        ב-JS: <code>el.innerText = "שלום";</code> — הגיון דומה, תחביר שונה.
+      </div>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide" id="slide-5">
+      <div class="slide-number">שקופית 5 מתוך 9</div>
+      <div class="tag">סגנון</div>
+      <h2>שינוי סגנון של אלמנטים</h2>
+      <p>יש שתי גישות עיקריות לשינוי המראה החזותי של אלמנט:</p>
+      <h3>שינוי ישיר דרך style</h3>
+      <div class="code-block">const box = document.getElementById("box");
+
+box.style.color = "red";
+box.style.backgroundColor = "#eee";  // camelCase!
+box.style.fontSize = "20px";</div>
+      <div class="note">
+        חשוב לשים לב: שמות מאפייני CSS שמכילים מקף (כגון <code>background-color</code>)
+        נכתבים ב-JS בפורמט camelCase: <code>backgroundColor</code>.
+      </div>
+      <h3>הוספה והסרה של מחלקות CSS (classList)</h3>
+      <div class="code-block">box.classList.add("highlighted");     // הוספת class
+box.classList.remove("highlighted");  // הסרת class
+box.classList.toggle("active");       // החלפה: אם קיים — מסיר, אם לא — מוסיף
+box.classList.contains("active");     // true / false</div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-WPF: <code>btn.Style = (Style)FindResource("MyStyle");</code><br>
+        ב-JS: עדיף להגדיר מחלקות CSS מראש ולהחליפן בעזרת <code>classList</code>, במקום לכתוב style inline.
+      </div>
+    </div>
+
+    <!-- Slide 6 -->
+    <div class="slide" id="slide-6">
+      <div class="slide-number">שקופית 6 מתוך 9</div>
+      <div class="tag">אירועים</div>
+      <h2>אירועים (Events) — מבוא</h2>
+      <p>
+        אירוע (Event) הוא פעולה שמתרחשת בדפדפן — לחיצה על כפתור, הקלדה,
+        גלילה, טעינת דף ועוד. JavaScript מאפשר להגיב לאירועים אלו
+        על ידי חיבור <strong>פונקציית handler</strong> לאלמנט.
+      </p>
+      <ul>
+        <li><code>click</code> — לחיצה על אלמנט</li>
+        <li><code>input</code> — שינוי ערך בשדה קלט</li>
+        <li><code>keydown / keyup</code> — לחיצה על מקש</li>
+        <li><code>submit</code> — שליחת טופס</li>
+        <li><code>mouseover / mouseout</code> — מעבר עכבר</li>
+      </ul>
+      <div class="code-block">// מבנה כללי:
+element.addEventListener("eventName", function() {
+    // קוד שיבוצע כשהאירוע מתרחש
+});</div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C# WinForms: <code>button1.Click += new EventHandler(button1_Click);</code><br>
+        ב-JS: <code>btn.addEventListener("click", myFunction);</code><br>
+        הרעיון זהה — חיבור פונקציה לאירוע. התחביר שונה.
+      </div>
+    </div>
+
+    <!-- Slide 7 -->
+    <div class="slide" id="slide-7">
+      <div class="slide-number">שקופית 7 מתוך 9</div>
+      <div class="tag">אירוע click</div>
+      <h2>אירוע click — בפירוט</h2>
+      <p>האירוע הנפוץ ביותר ב-DOM הוא <code>click</code>. ניתן לחבר אליו פונקציה בשתי דרכים:</p>
+      <h3>דרך 1 — addEventListener</h3>
+      <div class="code-block">const btn = document.getElementById("myBtn");
+
+btn.addEventListener("click", function() {
+    alert("הכפתור נלחץ!");
+});</div>
+      <h3>דרך 2 — Arrow Function</h3>
+      <div class="code-block">btn.addEventListener("click", () => {
+    document.getElementById("msg").innerText = "נלחץ!";
+});</div>
+      <h3>שימוש בפונקציה מוגדרת מראש</h3>
+      <div class="code-block">function handleClick() {
+    console.log("לחיצה זוהתה");
+}
+
+btn.addEventListener("click", handleClick);
+// שים לב: מועברת הפנייה לפונקציה — ללא סוגריים!</div>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-C#: <code>button1.Click += HandleClick;</code> — גם כאן מועברת הפנייה ללא סוגריים.<br>
+        ב-JS: <code>btn.addEventListener("click", handleClick);</code> — דפוס זהה.
+      </div>
+    </div>
+
+    <!-- Slide 8 -->
+    <div class="slide" id="slide-8">
+      <div class="slide-number">שקופית 8 מתוך 9</div>
+      <div class="tag">קלט מהמשתמש</div>
+      <h2>עבודה עם value בקלטים</h2>
+      <p>
+        שדות קלט (input) הם חלק מרכזי בכל טופס. בעזרת <code>value</code>
+        ניתן לקרוא את מה שהמשתמש הזין, ולשלב אותו בלוגיקת הדף.
+      </p>
+      <div class="code-block">// HTML:
+// &lt;input id="nameInput" type="text" placeholder="הזן שם" /&gt;
+// &lt;button id="submitBtn"&gt;שלח&lt;/button&gt;
+// &lt;p id="output"&gt;&lt;/p&gt;
+
+// JavaScript:
+const btn = document.getElementById("submitBtn");
+
+btn.addEventListener("click", () => {
+    const input = document.getElementById("nameInput");
+    const name = input.value;
+
+    if (name === "") {
+        alert("יש למלא את השדה");
+        return;
+    }
+
+    document.getElementById("output").innerText = "שלום, " + name + "!";
+});</div>
+      <ul>
+        <li>ניתן להציג את הערך בדף (<code>innerText</code>), בקונסול (<code>console.log</code>), או ב-alert</li>
+        <li>חשוב לאמת את הקלט לפני שימוש (בדיקת ריקנות, פורמט וכד')</li>
+      </ul>
+      <div class="compare-box">
+        <strong>השוואה ל-C#:</strong><br>
+        ב-WinForms: <code>string name = textBox1.Text;</code><br>
+        ב-JS: <code>const name = input.value;</code> — מושג זהה, תחביר שונה.
+      </div>
+    </div>
+
+    <!-- Slide 9 -->
+    <div class="slide" id="slide-9">
+      <div class="slide-number">שקופית 9 מתוך 9</div>
+      <div class="tag">דוגמאות משולבות</div>
+      <h2>דוגמאות משולבות</h2>
+      <p>להלן שילוב של כל המרכיבים: בחירת אלמנט, אירוע, קלט ועדכון ה-DOM.</p>
+      <h3>דוגמה 1 — שינוי צבע ב-click</h3>
+      <div class="code-block">const box = document.getElementById("colorBox");
+
+box.addEventListener("click", () => {
+    box.classList.toggle("active");
+    box.innerText = box.classList.contains("active")
+        ? "פעיל" : "לא פעיל";
+});</div>
+      <h3>דוגמה 2 — מחשבון פשוט</h3>
+      <div class="code-block">document.getElementById("calcBtn").addEventListener("click", () => {
+    const a = Number(document.getElementById("num1").value);
+    const b = Number(document.getElementById("num2").value);
+    const result = a + b;
+    document.getElementById("result").innerText = "סכום: " + result;
+});</div>
+      <h3>דוגמה 3 — סינון רשימה</h3>
+      <div class="code-block">document.getElementById("search").addEventListener("input", () => {
+    const term = document.getElementById("search").value.toLowerCase();
+    const items = document.querySelectorAll(".item");
+
+    items.forEach(item => {
+        const match = item.innerText.toLowerCase().includes(term);
+        item.style.display = match ? "block" : "none";
+    });
+});</div>
+      <div class="compare-box">
+        <strong>עיקרון מנחה:</strong><br>
+        כל פעולה ב-DOM עוקבת אחרי אותו תבנית: <strong>בחר אלמנט → האזן לאירוע → שנה את ה-DOM</strong>.
+        תבנית זו חוזרת על עצמה בכל פרויקט JavaScript.
+      </div>
+    </div>
+
+  </div><!-- end slide-container -->
+
+  <!-- Navigation -->
+  <div class="nav-bar">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>הקודם</button>
+    <div class="progress-area">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">שקופית 1 מתוך 9</div>
+    </div>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">הבא</button>
+  </div>
+
+</div><!-- end presentation-wrapper -->
+
+<script>
+  let current = 1;
+  const total = 9;
+
+  function changeSlide(dir) {
+    document.getElementById("slide-" + current).classList.remove("active");
+    current += dir;
+    document.getElementById("slide-" + current).classList.add("active");
+    document.getElementById("prevBtn").disabled = current === 1;
+    document.getElementById("nextBtn").disabled = current === total;
+    const pct = ((current - 1) / (total - 1)) * 100;
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressLabel").textContent = "שקופית " + current + " מתוך " + total;
+  }
+
+  // Init progress
+  document.getElementById("progressFill").style.width = "0%";
+</script>
+</body>
+</html>

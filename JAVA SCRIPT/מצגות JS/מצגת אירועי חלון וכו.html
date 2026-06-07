@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Objects in JavaScript — מצגת לימודית</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg-card: #FFFFFF;
+    --color-primary: #0F6F6F;
+    --color-bronze: #B08D57;
+    --color-text: #1A1A1A;
+    --color-bg-gradient-start: #0a4a4a;
+    --color-bg-gradient-end: #000000;
+    --color-code-bg: #f4f8f8;
+    --color-code-border: #0F6F6F;
+    --color-highlight: #e8f4f4;
+    --color-compare: #fdf6ec;
+    --color-compare-border: #B08D57;
+    --shadow: 0 8px 40px rgba(0,0,0,0.25);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Assistant', sans-serif;
+    background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--color-text);
+  }
+  .presentation-wrapper { width: 100%; max-width: 860px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .slide-container { width: 100%; }
+  .slide {
+    display: none;
+    background: var(--color-bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 52px;
+    animation: slideIn 0.35s ease;
+    min-height: 480px;
+  }
+  .slide.active { display: block; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-number { font-size: 12px; font-weight: 600; color: var(--color-primary); letter-spacing: 1.5px; margin-bottom: 8px; }
+  h2 { font-size: 28px; font-weight: 700; color: var(--color-primary); margin-bottom: 20px; line-height: 1.3; border-bottom: 2px solid var(--color-highlight); padding-bottom: 12px; }
+  h3 { font-size: 18px; font-weight: 700; color: var(--color-primary); margin: 18px 0 8px; }
+  p { font-size: 16px; line-height: 1.8; color: var(--color-text); margin-bottom: 14px; }
+  ul { padding-right: 22px; margin-bottom: 14px; }
+  ul li { font-size: 15.5px; line-height: 1.85; color: var(--color-text); margin-bottom: 4px; }
+  .code-block {
+    background: var(--color-code-bg);
+    border-right: 4px solid var(--color-code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a3a3a;
+    white-space: pre;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+  .compare-box { background: var(--color-compare); border-right: 4px solid var(--color-compare-border); border-radius: 8px; padding: 14px 18px; margin: 14px 0; font-size: 15px; line-height: 1.75; color: #4a3000; }
+  .compare-box strong { color: var(--color-bronze); font-weight: 700; }
+  .tag { display: inline-block; background: var(--color-highlight); color: var(--color-primary); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; }
+  .note { background: #f0f9f9; border: 1px solid #b2d8d8; border-radius: 8px; padding: 12px 16px; font-size: 14.5px; color: #0a4040; margin-top: 12px; line-height: 1.7; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  /* Cover */
+  .cover-slide { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 480px; padding: 64px 52px; }
+  .cover-badge { background: var(--color-highlight); color: var(--color-primary); font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; margin-bottom: 28px; letter-spacing: 1px; }
+  .cover-title { font-size: 40px; font-weight: 700; color: var(--color-primary); margin-bottom: 16px; line-height: 1.2; border: none; padding: 0; }
+  .cover-subtitle { font-size: 20px; font-weight: 300; color: #444; margin-bottom: 36px; }
+  .cover-divider { width: 60px; height: 3px; background: var(--color-bronze); border-radius: 99px; margin: 0 auto 36px; }
+  .cover-meta { font-size: 14px; color: #888; }
+  /* TOC */
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .toc-btn { background: var(--color-highlight); border: 1.5px solid #c0dede; border-radius: 10px; padding: 10px 14px; font-family: 'Assistant', sans-serif; font-size: 14px; font-weight: 600; color: var(--color-primary); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; text-align: right; display: flex; align-items: center; gap: 10px; }
+  .toc-btn:hover { background: #d0ecec; border-color: var(--color-primary); transform: translateY(-2px); }
+  .toc-num { background: var(--color-primary); color: #fff; font-size: 11px; font-weight: 700; min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  /* Nav */
+  .nav-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 16px; }
+  .nav-btn { background: var(--color-primary); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-family: 'Assistant', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.15s; min-width: 110px; }
+  .nav-btn:hover { background: #0a5555; transform: translateY(-1px); }
+  .nav-btn:disabled { background: #a0b8b8; cursor: default; transform: none; }
+  .progress-area { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .progress-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--color-bronze); border-radius: 99px; transition: width 0.3s ease; }
+  .progress-label { font-size: 13px; color: rgba(255,255,255,0.7); }
+  @media (max-width: 620px) { .slide { padding: 28px 20px; } h2 { font-size: 22px; } .two-col, .toc-grid { grid-template-columns: 1fr; } .cover-title { font-size: 28px; } }
+</style>
+</head>
+<body>
+<div class="presentation-wrapper">
+<div class="slide-container">
+
+<!-- ═══ SLIDE 1 — COVER ═══ -->
+<div class="slide active" id="slide-1">
+  <div class="cover-slide">
+    <div class="cover-badge">JavaScript — יחידה 5ב</div>
+    <h2 class="cover-title">Browser Objects<br>in JavaScript</h2>
+    <div class="cover-divider"></div>
+    <p class="cover-subtitle">window, location, history ו-navigator</p>
+    <p class="cover-meta">קורס JavaScript למתכנתי C# — BOM ואובייקטי הדפדפן</p>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — TOC ═══ -->
+<div class="slide" id="slide-2">
+  <div class="slide-number">שקופית 2 מתוך 12</div>
+  <div class="tag">ניווט</div>
+  <h2>תוכן עניינים</h2>
+  <div class="toc-grid">
+    <button class="toc-btn" onclick="goTo(3)"><span class="toc-num">1</span>מבוא ל-BOM</button>
+    <button class="toc-btn" onclick="goTo(4)"><span class="toc-num">2</span>האובייקט window</button>
+    <button class="toc-btn" onclick="goTo(5)"><span class="toc-num">3</span>פונקציות של window</button>
+    <button class="toc-btn" onclick="goTo(6)"><span class="toc-num">4</span>מידות וגלילה</button>
+    <button class="toc-btn" onclick="goTo(7)"><span class="toc-num">5</span>האובייקט location</button>
+    <button class="toc-btn" onclick="goTo(8)"><span class="toc-num">6</span>מאפייני location</button>
+    <button class="toc-btn" onclick="goTo(9)"><span class="toc-num">7</span>האובייקט history</button>
+    <button class="toc-btn" onclick="goTo(10)"><span class="toc-num">8</span>האובייקט navigator</button>
+    <button class="toc-btn" onclick="goTo(11)"><span class="toc-num">9</span>דוגמאות מעשיות</button>
+    <button class="toc-btn" onclick="goTo(12)"><span class="toc-num">10</span>תרגול מסכם</button>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — BOM INTRO ═══ -->
+<div class="slide" id="slide-3">
+  <div class="slide-number">שקופית 3 מתוך 12</div>
+  <div class="tag">BOM</div>
+  <h2>מבוא ל-BOM</h2>
+  <p>
+    BOM — Browser Object Model — הוא מכלול האובייקטים שהדפדפן מספק ל-JavaScript
+    לצורך אינטראקציה עם <strong>סביבת הדפדפן עצמו</strong>, מחוץ למסמך ה-HTML.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>DOM</h3>
+      <ul>
+        <li>ייצוג של מסמך ה-HTML</li>
+        <li>אלמנטים, תוכן, סגנונות</li>
+        <li>הגדרה סטנדרטית (W3C)</li>
+        <li><code>document.querySelector(...)</code></li>
+      </ul>
+    </div>
+    <div>
+      <h3>BOM</h3>
+      <ul>
+        <li>ייצוג של חלון הדפדפן</li>
+        <li>URL, היסטוריה, מידע מכשיר</li>
+        <li>לא סטנדרטי לחלוטין (browser-specific)</li>
+        <li><code>window.location.href</code></li>
+      </ul>
+    </div>
+  </div>
+  <p>
+    האובייקט המרכזי של ה-BOM הוא <code>window</code> — האובייקט הגלובלי של הדפדפן.
+    כל האובייקטים האחרים (<code>location</code>, <code>history</code>, <code>navigator</code>)
+    הם מאפיינים של <code>window</code>.
+  </p>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-C# WinForms: <code>Application</code>, <code>Screen</code>, <code>Environment</code> — מידע על סביבת ריצה.<br>
+    ב-JS: <code>window</code>, <code>navigator</code>, <code>screen</code> — מידע על סביבת הדפדפן.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — WINDOW OBJECT ═══ -->
+<div class="slide" id="slide-4">
+  <div class="slide-number">שקופית 4 מתוך 12</div>
+  <div class="tag">window</div>
+  <h2>האובייקט window — האובייקט הגלובלי</h2>
+  <p>
+    <code>window</code> הוא האובייקט הגלובלי של JavaScript בדפדפן.
+    כל משתנה גלובלי, כל פונקציה גלובלית, וכל האובייקטים המובנים — כולם מאפיינים של <code>window</code>.
+  </p>
+  <div class="code-block">// כל הדברים הבאים שקולים:
+console.log("hello");
+window.console.log("hello");
+
+setTimeout(() => {}, 1000);
+window.setTimeout(() => {}, 1000);
+
+// משתנה גלובלי הופך למאפיין של window:
+var myName = "יוסי";
+console.log(window.myName); // "יוסי"
+
+// אובייקטים מובנים:
+window.document   // ה-DOM
+window.location   // כתובת URL
+window.history    // היסטוריית ניווט
+window.navigator  // מידע על הדפדפן
+window.screen     // מידע על המסך
+window.localStorage  // אחסון מקומי</div>
+  <div class="note">
+    ניתן לכתוב <code>window.alert()</code> או פשוט <code>alert()</code> — שתי הצורות זהות.
+    הקידומת <code>window.</code> מושמטת בדרך כלל מפני שהיא מובנת מאליה.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — WINDOW METHODS ═══ -->
+<div class="slide" id="slide-5">
+  <div class="slide-number">שקופית 5 מתוך 12</div>
+  <div class="tag">window methods</div>
+  <h2>פונקציות שימושיות של window</h2>
+  <div class="code-block">// alert — הצגת הודעה (חוסמת):
+alert("ברוכים הבאים!");
+window.alert("הודעה חשובה");
+
+// confirm — אישור כן/לא:
+const ok = confirm("האם להמשיך?");
+if (ok) {
+    console.log("המשתמש אישר");
+} else {
+    console.log("המשתמש ביטל");
+}
+
+// prompt — קלט טקסטואלי:
+const name = prompt("מה שמך?", "אורח"); // ערך ברירת מחדל: "אורח"
+if (name) {
+    console.log("שלום, " + name);
+}
+
+// open — פתיחת חלון/כרטיסייה חדשה:
+const newTab = window.open("https://example.com", "_blank");
+
+// close — סגירת חלון (עובד רק על חלונות שנפתחו בקוד):
+newTab.close();
+
+// print — פתיחת דיאלוג הדפסה:
+window.print();</div>
+  <div class="note">
+    <code>alert</code>, <code>confirm</code> ו-<code>prompt</code> חוסמים את ריצת הקוד עד לתגובת המשתמש.
+    בפרויקטים מודרניים מומלץ להחליפם ב-UI מותאם אישית (modal, dialog).
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — DIMENSIONS & SCROLL ═══ -->
+<div class="slide" id="slide-6">
+  <div class="slide-number">שקופית 6 מתוך 12</div>
+  <div class="tag">מידות וגלילה</div>
+  <h2>מידות ומאפייני חלון</h2>
+  <p>
+    <code>window</code> חושף מאפיינים המתארים את גודל אזור התצוגה ומיקום הגלילה —
+    שימושיים לעיצוב responsive ולגלילה מבוקרת.
+  </p>
+  <div class="code-block">// גודל אזור התצוגה (viewport):
+console.log(window.innerWidth);   // רוחב בפיקסלים
+console.log(window.innerHeight);  // גובה בפיקסלים
+
+// מיקום גלילה נוכחי:
+console.log(window.scrollX); // גלילה אופקית
+console.log(window.scrollY); // גלילה אנכית (הנפוץ)
+
+// גלילה לראש הדף:
+window.scrollTo(0, 0);
+
+// גלילה חלקה:
+window.scrollTo({ top: 0, behavior: "smooth" });
+
+// גלילה יחסית (מהמיקום הנוכחי):
+window.scrollBy(0, 300); // 300px למטה
+
+// דוגמה: כפתור "חזור לראש" שמופיע בגלילה:
+window.addEventListener("scroll", () => {
+    const btn = document.getElementById("backToTop");
+    btn.style.display = window.scrollY > 400 ? "block" : "none";
+});
+
+// responsive — התאמה לגודל חלון:
+window.addEventListener("resize", () => {
+    if (window.innerWidth < 768) {
+        document.body.classList.add("mobile");
+    } else {
+        document.body.classList.remove("mobile");
+    }
+});</div>
+</div>
+
+<!-- ═══ SLIDE 7 — LOCATION OBJECT ═══ -->
+<div class="slide" id="slide-7">
+  <div class="slide-number">שקופית 7 מתוך 12</div>
+  <div class="tag">location</div>
+  <h2>האובייקט location</h2>
+  <p>
+    <code>window.location</code> מכיל את כל המידע על ה-URL הנוכחי של הדף,
+    ומספק פונקציות לניווט פרוגרמטי.
+  </p>
+  <div class="code-block">// URL לדוגמה:
+// https://example.com:8080/shop/products?q=shoes&color=red#results
+
+console.log(location.href);      // ה-URL המלא
+console.log(location.protocol);  // "https:"
+console.log(location.hostname);  // "example.com"
+console.log(location.port);      // "8080"
+console.log(location.pathname);  // "/shop/products"
+console.log(location.search);    // "?q=shoes&color=red"
+console.log(location.hash);      // "#results"
+console.log(location.host);      // "example.com:8080"</div>
+  <div class="note">
+    <code>location.search</code> מחזיר את ה-query string כולל סימן <code>?</code>.
+    לניתוח הפרמטרים יש להשתמש ב-<code>new URLSearchParams(location.search)</code>
+    כפי שהוסבר ביחידה הקודמת.
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-ASP.NET: <code>Request.Url</code> — גישה לחלקי ה-URL בצד השרת.<br>
+    ב-JS: <code>window.location</code> — גישה לאותו מידע בצד הלקוח, בזמן אמת.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — LOCATION METHODS ═══ -->
+<div class="slide" id="slide-8">
+  <div class="slide-number">שקופית 8 מתוך 12</div>
+  <div class="tag">location methods</div>
+  <h2>פונקציות ומאפיינים של location</h2>
+  <div class="code-block">// ניווט לדף אחר (נשמר ב-history):
+location.href = "https://example.com/new-page";
+// שקול ל:
+location.assign("https://example.com/new-page");
+
+// ניווט ללא שמירה ב-history (לא ניתן "חזרה"):
+location.replace("https://example.com/login");
+// שימוש נפוץ: redirect לאחר logout
+
+// רענון הדף:
+location.reload();          // רגיל
+location.reload(true);      // כפיית טעינה מהשרת (עוקף cache)
+
+// שינוי חלק ספציפי ב-URL:
+location.pathname = "/about";     // ניווט ל-/about
+location.search   = "?page=2";   // עדכון query string
+location.hash     = "#section3"; // גלילה לעוגן (ללא טעינה מחדש)
+
+// בדיקת דף נוכחי:
+if (location.pathname === "/dashboard") {
+    loadDashboardData();
+}</div>
+  <div class="note">
+    ההבדל בין <code>assign</code> ל-<code>replace</code> הוא קריטי:
+    <code>assign</code> שומר את הדף הנוכחי ב-history (ניתן לחזור),
+    <code>replace</code> מחליף את הרשומה הנוכחית (לא ניתן לחזור).
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — HISTORY ═══ -->
+<div class="slide" id="slide-9">
+  <div class="slide-number">שקופית 9 מתוך 12</div>
+  <div class="tag">history</div>
+  <h2>האובייקט history</h2>
+  <p>
+    <code>window.history</code> מאפשר גישה לרשימת הדפים שנצפו בכרטיסייה הנוכחית
+    ומספק פונקציות לניווט ביניהם — בלי לחשוף את כתובות הדפים עצמן (מסיבות פרטיות).
+  </p>
+  <div class="code-block">// מספר הרשומות ב-history:
+console.log(history.length); // מספר דפים בהיסטוריה
+
+// חזרה לדף הקודם (כמו כפתור Back בדפדפן):
+history.back();
+// שקול ל:
+history.go(-1);
+
+// קדימה לדף הבא:
+history.forward();
+history.go(1);
+
+// קפיצה למספר דפים:
+history.go(-3); // 3 דפים אחורה
+history.go(2);  // 2 דפים קדימה
+
+// pushState — הוספת רשומה ל-history ללא טעינת דף:
+history.pushState({ page: "products" }, "", "/products");
+// URL משתנה ל-/products, הדף לא נטען מחדש
+
+// replaceState — החלפת הרשומה הנוכחית:
+history.replaceState({ page: "cart" }, "", "/cart");
+
+// האזנה לשינוי ב-history (לחיצת Back/Forward):
+window.addEventListener("popstate", (e) => {
+    console.log("מצב:", e.state);
+    renderPage(e.state);
+});</div>
+  <div class="note">
+    <code>pushState</code> ו-<code>replaceState</code> הם הבסיס לכל ה-SPA Routers
+    (React Router, Vue Router) — הם מאפשרים ניווט ב-URL מבלי לטעון מחדש את הדף.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — NAVIGATOR ═══ -->
+<div class="slide" id="slide-10">
+  <div class="slide-number">שקופית 10 מתוך 12</div>
+  <div class="tag">navigator</div>
+  <h2>האובייקט navigator</h2>
+  <p>
+    <code>window.navigator</code> מספק מידע על הדפדפן, מערכת ההפעלה, השפה,
+    ומצב הרשת של המשתמש.
+  </p>
+  <div class="code-block">// שפת הדפדפן:
+console.log(navigator.language);   // "he-IL", "en-US", "ar"...
+console.log(navigator.languages);  // ["he-IL", "he", "en-US", "en"]
+
+// מחרוזת זיהוי הדפדפן (User Agent):
+console.log(navigator.userAgent);
+// "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/..."
+
+// מצב חיבור לרשת:
+console.log(navigator.onLine); // true / false
+
+// פלטפורמה (מיושן בחלקו):
+console.log(navigator.platform); // "Win32", "MacIntel"...
+
+// מספר ליבות מעבד:
+console.log(navigator.hardwareConcurrency); // 8
+
+// האם מגע נתמך:
+console.log(navigator.maxTouchPoints); // 0 = אין, >0 = touch
+
+// Geolocation — מיקום המשתמש (דורש הרשאה):
+navigator.geolocation.getCurrentPosition(
+    (pos) => {
+        console.log("קו רוחב:", pos.coords.latitude);
+        console.log("קו אורך:", pos.coords.longitude);
+    },
+    (err) => console.error("שגיאת מיקום:", err.message)
+);</div>
+</div>
+
+<!-- ═══ SLIDE 11 — PRACTICAL EXAMPLES ═══ -->
+<div class="slide" id="slide-11">
+  <div class="slide-number">שקופית 11 מתוך 12</div>
+  <div class="tag">דוגמאות מעשיות</div>
+  <h2>דוגמאות מעשיות — שילוב אובייקטי דפדפן</h2>
+  <h3>זיהוי שפת הדפדפן והתאמת תוכן</h3>
+  <div class="code-block">function applyLanguage() {
+    const lang = navigator.language.split("-")[0]; // "he", "en", "ar"
+
+    if (lang === "he" || lang === "ar") {
+        document.dir = "rtl";
+        document.documentElement.lang = lang;
+    } else {
+        document.dir = "ltr";
+        document.documentElement.lang = lang;
+    }
+}</div>
+  <h3>בדיקת מצב רשת עם עדכון חי</h3>
+  <div class="code-block">function updateOnlineStatus() {
+    const banner = document.getElementById("offlineBanner");
+    if (!navigator.onLine) {
+        banner.style.display = "block";
+        banner.innerText = "אין חיבור לאינטרנט";
+    } else {
+        banner.style.display = "none";
+    }
+}
+
+window.addEventListener("online",  updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+updateOnlineStatus(); // בדיקה ראשונית</div>
+  <h3>שמירת מיקום גלילה בין טעינות</h3>
+  <div class="code-block">window.addEventListener("scroll", () => {
+    localStorage.setItem("scrollPos", window.scrollY);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const pos = Number(localStorage.getItem("scrollPos")) || 0;
+    window.scrollTo({ top: pos, behavior: "instant" });
+});</div>
+</div>
+
+<!-- ═══ SLIDE 12 — SUMMARY EXERCISE ═══ -->
+<div class="slide" id="slide-12">
+  <div class="slide-number">שקופית 12 מתוך 12</div>
+  <div class="tag">תרגול מסכם</div>
+  <h2>תרגול מסכם — שילוב אובייקטי הדפדפן</h2>
+  <p>
+    תרחיש משולב: אפליקציה שמשתמשת ב-window, location, history ו-navigator יחד.
+  </p>
+  <div class="code-block">// --- אתחול האפליקציה ---
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 1. התאמת שפה לפי הדפדפן:
+    const userLang = navigator.language.startsWith("he") ? "he" : "en";
+    document.documentElement.lang = userLang;
+    document.dir = userLang === "he" ? "rtl" : "ltr";
+
+    // 2. קריאת פרמטר מה-URL (עמוד נוכחי בפגינציה):
+    const params   = new URLSearchParams(location.search);
+    const page     = Number(params.get("page")) || 1;
+    loadPage(page);
+
+    // 3. שמירת מיקום גלילה:
+    const savedScroll = Number(localStorage.getItem("scroll")) || 0;
+    window.scrollTo(0, savedScroll);
+
+    // 4. כפתורי ניווט — שימוש ב-history:
+    document.getElementById("prevPage").addEventListener("click", () => {
+        if (page > 1) {
+            history.pushState({}, "", "?page=" + (page - 1));
+            location.reload();
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", () => {
+        history.pushState({}, "", "?page=" + (page + 1));
+        location.reload();
+    });
+
+    // 5. שמירת גלילה לפני עזיבת הדף:
+    window.addEventListener("beforeunload", () => {
+        localStorage.setItem("scroll", window.scrollY);
+    });
+
+    // 6. בדיקת חיבור רשת:
+    if (!navigator.onLine) {
+        alert("שים לב: אין חיבור לאינטרנט. חלק מהתוכן עשוי לא להיטען.");
+    }
+});</div>
+  <div class="compare-box">
+    <strong>סיכום — מתי משתמשים בכל אחד:</strong><br>
+    <code>window</code> — גודל חלון, גלילה, דיאלוגים, פתיחת כרטיסייה.<br>
+    <code>location</code> — ניווט בין דפים, קריאת URL, redirect.<br>
+    <code>history</code> — ניווט אחורה/קדימה, SPA routing.<br>
+    <code>navigator</code> — שפה, מצב רשת, מידע על מכשיר.
+  </div>
+</div>
+
+</div><!-- end slide-container -->
+
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>הקודם</button>
+  <div class="progress-area">
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">שקופית 1 מתוך 12</div>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">הבא</button>
+</div>
+</div>
+
+<script>
+  let current = 1;
+  const total = 12;
+  function updateUI() {
+    document.getElementById("prevBtn").disabled = current === 1;
+    document.getElementById("nextBtn").disabled = current === total;
+    document.getElementById("progressFill").style.width = ((current-1)/(total-1)*100) + "%";
+    document.getElementById("progressLabel").textContent = "שקופית " + current + " מתוך " + total;
+  }
+  function changeSlide(dir) {
+    document.getElementById("slide-"+current).classList.remove("active");
+    current += dir;
+    document.getElementById("slide-"+current).classList.add("active");
+    updateUI();
+  }
+  function goTo(n) {
+    document.getElementById("slide-"+current).classList.remove("active");
+    current = n;
+    document.getElementById("slide-"+current).classList.add("active");
+    updateUI();
+  }
+  updateUI();
+</script>
+</body>
+</html>

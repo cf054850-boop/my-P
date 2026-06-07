@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פונקציות וסטרינגים ב-JavaScript</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-bg-card: #FFFFFF;
+            --color-primary: #0F6F6F;
+            --color-bronze: #B08D57;
+            --color-text: #1A1A1A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Assistant', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0F6F6F 0%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .presentation-container {
+            background: var(--color-bg-card);
+            border-radius: 32px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 1100px;
+            min-height: 600px;
+            padding: 60px;
+            position: relative;
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .slide-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 35px;
+            line-height: 1.2;
+            border-bottom: 4px solid var(--color-bronze);
+            padding-bottom: 20px;
+        }
+        
+        .slide-content {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--color-text);
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .slide-content p {
+            margin-bottom: 20px;
+        }
+        
+        .slide-content ul {
+            list-style: none;
+            padding-right: 0;
+        }
+        
+        .slide-content li {
+            margin-bottom: 15px;
+            padding-right: 30px;
+            position: relative;
+        }
+        
+        .slide-content li::before {
+            content: "▸";
+            position: absolute;
+            right: 0;
+            color: var(--color-bronze);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        
+        .code-box {
+            background: #f8f9fa;
+            border: 2px solid var(--color-primary);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: #2d3748;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(15, 111, 111, 0.1);
+        }
+        
+        .code-box::before {
+            content: "דוגמה";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: var(--color-primary);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 8px;
+            font-family: 'Assistant', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .code-box code {
+            display: block;
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .comparison-note {
+            background: linear-gradient(135deg, rgba(176, 141, 87, 0.1), rgba(176, 141, 87, 0.05));
+            border-right: 5px solid var(--color-bronze);
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin: 25px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        
+        .comparison-note::before {
+            content: "💡 ";
+            font-size: 1.3rem;
+            margin-left: 8px;
+        }
+        
+        .highlight {
+            color: var(--color-bronze);
+            font-weight: 700;
+            text-decoration: underline;
+            text-decoration-color: var(--color-bronze);
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .nav-button {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Assistant', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(15, 111, 111, 0.3);
+        }
+        
+        .nav-button:hover {
+            background: #0d5a5a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 111, 111, 0.4);
+        }
+        
+        .nav-button:active {
+            transform: translateY(0);
+        }
+        
+        .nav-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .progress {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            padding: 10px 25px;
+            background: rgba(15, 111, 111, 0.08);
+            border-radius: 10px;
+        }
+        
+        .emphasis-box {
+            background: linear-gradient(135deg, rgba(15, 111, 111, 0.08), rgba(15, 111, 111, 0.04));
+            border: 2px solid var(--color-primary);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .strong-text {
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: var(--color-primary);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:nth-child(even) {
+            background: rgba(15, 111, 111, 0.03);
+        }
+        
+        /* Cover Slide Styles */
+        .cover-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 500px;
+        }
+        
+        .cover-title {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+        
+        .cover-subtitle {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--color-bronze);
+            margin-bottom: 50px;
+        }
+        
+        /* Table of Contents Styles */
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .toc-button {
+            background: linear-gradient(135deg, rgba(15, 111, 111, 0.08), rgba(15, 111, 111, 0.04));
+            border: 2px solid var(--color-primary);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Assistant', sans-serif;
+            color: var(--color-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: right;
+        }
+        
+        .toc-button:hover {
+            background: var(--color-primary);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(15, 111, 111, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .presentation-container {
+                padding: 30px;
+                border-radius: 20px;
+            }
+            
+            .slide-title {
+                font-size: 2rem;
+            }
+            
+            .cover-title {
+                font-size: 2.5rem;
+            }
+            
+            .cover-subtitle {
+                font-size: 1.5rem;
+            }
+            
+            .slide-content {
+                font-size: 1rem;
+            }
+            
+            .nav-button {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            .toc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 0: Cover -->
+        <div class="slide active cover-slide">
+            <h1 class="cover-title">JavaScript</h1>
+            <p class="cover-subtitle">פונקציות וסטרינגים ב-JavaScript</p>
+        </div>
+
+        <!-- Slide 1: Table of Contents -->
+        <div class="slide">
+            <h1 class="slide-title">תוכן עניינים</h1>
+            <div class="toc-grid">
+                <button class="toc-button" onclick="goToSlide(2)">פונקציות ב-JavaScript – מבוא</button>
+                <button class="toc-button" onclick="goToSlide(3)">פונקציות עם ערך מוחזר וארגומנטים</button>
+                <button class="toc-button" onclick="goToSlide(4)">ארגומנטים ברירת מחדל</button>
+                <button class="toc-button" onclick="goToSlide(5)">פונקציה בתוך משתנה</button>
+                <button class="toc-button" onclick="goToSlide(6)">Function Hoisting</button>
+                <button class="toc-button" onclick="goToSlide(7)">Arrow Functions (פונקציות חץ)</button>
+                <button class="toc-button" onclick="goToSlide(8)">Strings ב-JavaScript</button>
+                <button class="toc-button" onclick="goToSlide(9)">Date Object</button>
+            </div>
+        </div>
+
+        <!-- Slide 2: Functions Introduction -->
+        <div class="slide">
+            <h1 class="slide-title">פונקציות ב-JavaScript – מבוא</h1>
+            <div class="slide-content">
+                <p><span class="strong-text">פונקציה</span> היא בלוק קוד שניתן לקרוא לו מספר פעמים, בדיוק כמו ב-C#.</p>
+                
+                <p><span class="highlight">מבנה בסיסי של פונקציה:</span></p>
+            </div>
+            
+            <div class="code-box">
+<code>// הצהרה על פונקציה
+function sayHello() {
+    console.log("שלום עולם!");
+}
+
+// קריאה לפונקציה
+sayHello(); // "שלום עולם!"
+sayHello(); // "שלום עולם!"</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="strong-text">רכיבי פונקציה:</span></p>
+                <ul>
+                    <li><code>function</code> - מילת מפתח להצהרה</li>
+                    <li><code>sayHello</code> - שם הפונקציה</li>
+                    <li><code>()</code> - סוגריים לפרמטרים</li>
+                    <li><code>{}</code> - גוף הפונקציה</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-note">
+                ב-C# כותבים: <code>void SayHello() { }</code>, ב-JavaScript: <code>function sayHello() { }</code> - ללא הצהרת טיפוס
+            </div>
+        </div>
+
+        <!-- Slide 3: Functions with Return and Arguments -->
+        <div class="slide">
+            <h1 class="slide-title">פונקציות שמחזירות ערך ומקבלות ארגומנטים</h1>
+            <div class="slide-content">
+                <p>פונקציות יכולות לקבל ארגומנטים (פרמטרים) ולהחזיר ערכים:</p>
+            </div>
+            
+            <div class="code-box">
+<code>// פונקציה עם פרמטר אחד
+function greet(name) {
+    console.log("שלום " + name);
+}
+
+greet("יצחק");  // "שלום יצחק"
+greet("שרה");  // "שלום שרה"
+
+// פונקציה שמחזירה ערך
+function add(a, b) {
+    return a + b;
+}
+
+let result = add(5, 3);
+console.log(result); // 8
+
+// פונקציה מורכבת יותר
+function calculateArea(width, height) {
+    let area = width * height;
+    return area;
+}
+
+console.log(calculateArea(10, 5)); // 50</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="highlight">נקודות חשובות:</span></p>
+                <ul>
+                    <li>אין צורך להצהיר על טיפוס הפרמטרים</li>
+                    <li>אין צורך להצהיר על טיפוס ההחזרה</li>
+                    <li><code>return</code> מסיים את ביצוע הפונקציה</li>
+                    <li>פונקציה ללא <code>return</code> מחזירה <code>undefined</code></li>
+                </ul>
+            </div>
+            
+            <div class="comparison-note">
+                ב-C# כותבים: <code>int Add(int a, int b)</code>, ב-JavaScript: <code>function add(a, b)</code> - ללא טיפוסים
+            </div>
+        </div>
+
+        <!-- Slide 4: Default Parameters -->
+        <div class="slide">
+            <h1 class="slide-title">ארגומנטים ברירת מחדל</h1>
+            <div class="slide-content">
+                <p>ב-JavaScript ניתן להגדיר ערכי ברירת מחדל לפרמטרים:</p>
+            </div>
+            
+            <div class="code-box">
+<code>// ללא ברירת מחדל - בעיה
+function greet1(name) {
+    console.log("שלום " + name);
+}
+
+greet1();  // "שלום undefined" - לא טוב!
+
+// עם ברירת מחדל - פתרון
+function greet2(name = "אורח") {
+    console.log("שלום " + name);
+}
+
+greet2();       // "שלום אורח"
+greet2("יוסף");  // "שלום יוסף"
+
+// דוגמה עם מספרים
+function multiply(a, b = 1) {
+    return a * b;
+}
+
+console.log(multiply(5, 3)); // 15
+console.log(multiply(5));    // 5 (b=1)
+
+// מספר פרמטרים עם ברירת מחדל
+function createUser(name = "אנונימי", age = 18, country = "ישראל") {
+    return `${name}, בן ${age}, מ${country}`;
+}
+
+console.log(createUser());                    // "אנונימי, בן 18, מישראל"
+console.log(createUser("יהושע"));               // "יהושע, בן 18, מישראל"
+console.log(createUser("יהושע", 25, "ארה״ב")); // "יהושע, בן 25, מארה״ב"</code>
+            </div>
+            
+            <div class="comparison-note">
+                גם ב-C# וגם ב-JavaScript יש תמיכה בפרמטרים עם ברירת מחדל, התחביר דומה
+            </div>
+        </div>
+
+        <!-- Slide 5: Function Expressions -->
+        <div class="slide">
+            <h1 class="slide-title">פונקציה בתוך משתנה</h1>
+            <div class="slide-content">
+                <p>ב-JavaScript, פונקציות הן <span class="highlight">אובייקטים מדרגה ראשונה</span> - ניתן לשמור אותן במשתנים:</p>
+            </div>
+            
+            <div class="code-box">
+<code>// Function Declaration (הצהרה רגילה)
+function add1(a, b) {
+    return a + b;
+}
+
+// Function Expression (ביטוי פונקציה)
+const add2 = function(a, b) {
+    return a + b;
+};
+
+// שתיהן עובדות אותו דבר
+console.log(add1(3, 4)); // 7
+console.log(add2(3, 4)); // 7
+
+// פונקציה אנונימית (ללא שם)
+const greet = function(name) {
+    return "שלום " + name;
+};
+
+console.log(greet("משה")); // "שלום משה"</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="strong-text">ההבדלים:</span></p>
+                <ul>
+                    <li><code>function add1()</code> - ניתנת ל-hoisting (ראה שקף הבא)</li>
+                    <li><code>const add2 = function()</code> - לא ניתנת ל-hoisting</li>
+                    <li>שתיהן תקפות ושימושיות</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-note">
+                ב-C# אין אפשרות פשוטה לשמור פונקציה במשתנה (יש delegates ו-lambdas), ב-JavaScript זה טבעי
+            </div>
+        </div>
+
+        <!-- Slide 6: Function Hoisting -->
+        <div class="slide">
+            <h1 class="slide-title">Function Hoisting</h1>
+            <div class="slide-content">
+                <p><span class="highlight">Hoisting</span> פירושו "הרמה" - JavaScript "מרים" הצהרות פונקציות לתחילת הקוד.</p>
+            </div>
+            
+            <div class="code-box">
+<code>// זה עובד! למרות שהפונקציה מוגדרת אחרי הקריאה
+sayHello();
+
+function sayHello() {
+    console.log("שלום!");
+}
+
+// JavaScript "רואה" את זה כך:
+// function sayHello() { ... }  ← הועבר לראש
+// sayHello();
+
+// אבל זה לא עובד עם Function Expression:
+// greet(); // ✗ שגיאה! Cannot access 'greet' before initialization
+
+const greet = function() {
+    console.log("שלום");
+};</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="strong-text">למה זה קורה?</span></p>
+                <ul>
+                    <li>JavaScript סורקת את כל הקוד לפני הרצה</li>
+                    <li>היא "מרימה" הצהרות פונקציות לתחילה</li>
+                    <li>זה מאפשר לקרוא לפונקציה לפני ההגדרה שלה</li>
+                    <li>Function Expressions לא עוברות hoisting כי הן משתנים</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-note">
+                ב-C# חייבים להגדיר פונקציה לפני השימוש בה, ב-JavaScript function declarations עוברות hoisting
+            </div>
+        </div>
+
+        <!-- Slide 7: Arrow Functions -->
+        <div class="slide">
+            <h1 class="slide-title">Arrow Functions (פונקציות חץ)</h1>
+            <div class="slide-content">
+                <p><span class="highlight">Arrow Functions</span> הן תחביר קצר וקריא יותר לכתיבת פונקציות:</p>
+            </div>
+            
+            <div class="code-box">
+<code>// תחביר רגיל
+const add1 = function(a, b) {
+    return a + b;
+};
+
+// תחביר Arrow Function
+const add2 = (a, b) => {
+    return a + b;
+};
+
+// תחביר מקוצר (return משתמע)
+const add3 = (a, b) => a + b;
+
+// כולן עושות אותו דבר
+console.log(add1(3, 4)); // 7
+console.log(add2(3, 4)); // 7
+console.log(add3(3, 4)); // 7
+
+// עוד דוגמאות
+const square = x => x * x;  // פרמטר אחד - ללא סוגריים
+const sayHello_ = () => console.log("hello");  // ללא פרמטרים
+
+console.log(square(5)); // 25
+sayHello_(); // "hello"</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="strong-text">מתי להשתמש ב-Arrow Functions?</span></p>
+                <ul>
+                    <li>פונקציות קצרות וקריאות</li>
+                    <li>callbacks (מועברות לפונקציות אחרות)</li>
+                    <li>כאשר רוצים קוד מינימליסטי</li>
+                    <li>יש הבדלים ב-<code>this</code> (נלמד בהמשך)</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-note">
+                Arrow Functions ב-JavaScript דומות ל-Lambda Expressions ב-C#: <code>(a, b) => a + b</code>
+            </div>
+        </div>
+
+        <!-- Slide 8: Strings -->
+        <div class="slide">
+            <h1 class="slide-title">Strings ב-JavaScript</h1>
+            <div class="slide-content">
+                <p>JavaScript מספקת מתודות רבות לעבודה עם מחרוזות:</p>
+            </div>
+            
+            <div class="code-box">
+<code>let text = "JavaScript is Amazing";
+
+// אורך המחרוזת
+console.log(text.length); // 21
+
+// גישה לתו לפי אינדקס
+console.log(text[0]);        // "J"
+console.log(text.charAt(0)); // "J"
+
+// המרה לאותיות גדולות/קטנות
+console.log(text.toUpperCase()); // "JAVASCRIPT IS AMAZING"
+console.log(text.toLowerCase()); // "javascript is amazing"
+
+// חיפוש במחרוזת
+console.log(text.indexOf("is"));     // 11
+console.log(text.includes("Amazing")); // true
+console.log(text.startsWith("Java")); // true
+console.log(text.endsWith("ing"));    // true
+
+// חיתוך מחרוזת
+console.log(text.slice(0, 10));      // "JavaScript"
+console.log(text.substring(0, 10));  // "JavaScript"
+
+// החלפת טקסט
+console.log(text.replace("Amazing", "Cool")); // "JavaScript is Cool"
+
+// פיצול לפי מפריד
+let words = text.split(" ");
+console.log(words); // ["JavaScript", "is", "Amazing"]
+
+// הסרת רווחים מהקצוות
+let str = "  hello  ";
+console.log(str.trim()); // "hello"</code>
+            </div>
+            
+            <div class="comparison-note">
+                מתודות String ב-JavaScript דומות ל-C# (ToUpper, Contains, Replace וכו'), אבל בשמות camelCase
+            </div>
+        </div>
+
+        <!-- Slide 9: Date Object -->
+        <div class="slide">
+            <h1 class="slide-title">Date Object</h1>
+            <div class="slide-content">
+                <p>האובייקט <span class="highlight">Date</span> מאפשר עבודה עם תאריכים ושעות:</p>
+            </div>
+            
+            <div class="code-box">
+<code>// יצירת תאריך - עכשיו
+let now = new Date();
+console.log(now); // לדוגמה: 2026-02-01T10:30:00.000Z
+
+// יצירת תאריך ספציפי
+let birthday = new Date(2000, 0, 15); // 15 בינואר 2000 (חודש מתחיל מ-0!)
+let newYear = new Date("2026-01-01");
+
+// שליפת נתונים מתאריך
+console.log(now.getFullYear());  // 2026
+console.log(now.getMonth());     // 1 (פברואר - מתחיל מ-0!)
+console.log(now.getDate());      // 1 (יום בחודש)
+console.log(now.getDay());       // 6 (יום בשבוע: 0=ראשון, 6=שבת)
+console.log(now.getHours());     // שעה (0-23)
+console.log(now.getMinutes());   // דקות (0-59)
+console.log(now.getSeconds());   // שניות (0-59)
+
+// המרה למחרוזת
+console.log(now.toDateString());      // "Sat Feb 01 2026"
+console.log(now.toLocaleDateString()); // "2/1/2026" (תלוי בלוקל)
+console.log(now.toLocaleTimeString()); // "10:30:00 AM"</code>
+            </div>
+            
+            <div class="emphasis-box">
+                <p><span class="highlight">שימושים נפוצים:</span></p>
+            </div>
+            
+            <div class="code-box">
+<code>// חישוב הפרש בין תאריכים
+let date1 = new Date("2026-01-01");
+let date2 = new Date("2026-02-01");
+let diff = date2 - date1; // הפרש במילישניות
+let days = diff / (1000 * 60 * 60 * 24);
+console.log(days + " ימים"); // "31 ימים"
+
+// הצגת תאריך מעוצב
+let today = new Date();
+let formatted = `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`;
+console.log(formatted); // "1/2/2026"</code>
+            </div>
+            
+            <div class="comparison-note">
+                Date ב-JavaScript = DateTime ב-C#, אבל ב-JS חודשים מתחילים מ-0 (0=ינואר, 11=דצמבר)
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← הקודם</button>
+            <div class="progress">
+                <span id="currentSlide">1</span> / <span id="totalSlides">10</span>
+            </div>
+            <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">הבא →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('totalSlides').textContent = totalSlides;
+        
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function changeSlide(direction) {
+            currentSlideIndex += direction;
+            
+            if (currentSlideIndex < 0) currentSlideIndex = 0;
+            if (currentSlideIndex >= totalSlides) currentSlideIndex = totalSlides - 1;
+            
+            showSlide(currentSlideIndex);
+        }
+        
+        function goToSlide(slideNumber) {
+            currentSlideIndex = slideNumber;
+            showSlide(currentSlideIndex);
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                changeSlide(event.key === 'ArrowLeft' ? 1 : -1);
+            }
+        });
+        
+        showSlide(0);
+    </script>
+</body>
+</html>

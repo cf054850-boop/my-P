@@ -1,0 +1,12 @@
+body{
+    background-color: rgb(170, 214, 170);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+header{
+    background-color: rgb(154, 103, 22);
+    height: 80px;
+}
+footer{
+    background-color: rgb(154, 103, 22);
+    height: 80px;
+}

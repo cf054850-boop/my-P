@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOM Events & Forms — מצגת לימודית</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg-card: #FFFFFF;
+    --color-primary: #0F6F6F;
+    --color-bronze: #B08D57;
+    --color-text: #1A1A1A;
+    --color-bg-gradient-start: #0a4a4a;
+    --color-bg-gradient-end: #000000;
+    --color-code-bg: #f4f8f8;
+    --color-code-border: #0F6F6F;
+    --color-highlight: #e8f4f4;
+    --color-compare: #fdf6ec;
+    --color-compare-border: #B08D57;
+    --shadow: 0 8px 40px rgba(0,0,0,0.25);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Assistant', sans-serif;
+    background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--color-text);
+  }
+  .presentation-wrapper {
+    width: 100%;
+    max-width: 860px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .slide-container { width: 100%; }
+  .slide {
+    display: none;
+    background: var(--color-bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 52px;
+    animation: slideIn 0.35s ease;
+    min-height: 480px;
+  }
+  .slide.active { display: block; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide-number {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-primary);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+    line-height: 1.3;
+    border-bottom: 2px solid var(--color-highlight);
+    padding-bottom: 12px;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 18px 0 8px;
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin-bottom: 14px;
+  }
+  ul { padding-right: 22px; margin-bottom: 14px; }
+  ul li { font-size: 15.5px; line-height: 1.85; color: var(--color-text); margin-bottom: 4px; }
+  .code-block {
+    background: var(--color-code-bg);
+    border-right: 4px solid var(--color-code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a3a3a;
+    white-space: pre;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+  .compare-box {
+    background: var(--color-compare);
+    border-right: 4px solid var(--color-compare-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #4a3000;
+  }
+  .compare-box strong { color: var(--color-bronze); font-weight: 700; }
+  .tag {
+    display: inline-block;
+    background: var(--color-highlight);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .note {
+    background: #f0f9f9;
+    border: 1px solid #b2d8d8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    color: #0a4040;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  /* Cover */
+  .cover-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 480px;
+    padding: 64px 52px;
+  }
+  .cover-badge {
+    background: var(--color-highlight);
+    color: var(--color-primary);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+  .cover-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 16px;
+    line-height: 1.2;
+    border: none;
+    padding: 0;
+  }
+  .cover-subtitle { font-size: 20px; font-weight: 300; color: #444; margin-bottom: 36px; }
+  .cover-divider { width: 60px; height: 3px; background: var(--color-bronze); border-radius: 99px; margin: 0 auto 36px; }
+  .cover-meta { font-size: 14px; color: #888; }
+  /* TOC */
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .toc-btn {
+    background: var(--color-highlight);
+    border: 1.5px solid #c0dede;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Assistant', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toc-btn:hover { background: #d0ecec; border-color: var(--color-primary); transform: translateY(-2px); }
+  .toc-num {
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  /* Nav */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+  }
+  .nav-btn {
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: 'Assistant', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    min-width: 110px;
+  }
+  .nav-btn:hover { background: #0a5555; transform: translateY(-1px); }
+  .nav-btn:disabled { background: #a0b8b8; cursor: default; transform: none; }
+  .progress-area { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .progress-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--color-bronze); border-radius: 99px; transition: width 0.3s ease; }
+  .progress-label { font-size: 13px; color: rgba(255,255,255,0.7); }
+  @media (max-width: 620px) {
+    .slide { padding: 28px 20px; }
+    h2 { font-size: 22px; }
+    .two-col, .toc-grid { grid-template-columns: 1fr; }
+    .cover-title { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="presentation-wrapper">
+<div class="slide-container">
+
+<!-- ═══ SLIDE 1 — COVER ═══ -->
+<div class="slide active" id="slide-1">
+  <div class="cover-slide">
+    <div class="cover-badge">JavaScript — DOM 3</div>
+    <h2 class="cover-title">DOM Events<br>&amp; Forms</h2>
+    <div class="cover-divider"></div>
+    <p class="cover-subtitle">אירועים, טפסים, event object ותרגולים מתקדמים</p>
+    <p class="cover-meta">קורס JavaScript למתכנתי C# — יחידה 3</p>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — TOC ═══ -->
+<div class="slide" id="slide-2">
+  <div class="slide-number">שקופית 2 מתוך 17</div>
+  <div class="tag">ניווט</div>
+  <h2>תוכן עניינים</h2>
+  <div class="toc-grid">
+    <button class="toc-btn" onclick="goTo(3)"><span class="toc-num">1</span>חזרה קצרה על DOM</button>
+    <button class="toc-btn" onclick="goTo(4)"><span class="toc-num">2</span>מבוא לאירועים</button>
+    <button class="toc-btn" onclick="goTo(5)"><span class="toc-num">3</span>Event Listeners</button>
+    <button class="toc-btn" onclick="goTo(6)"><span class="toc-num">4</span>אירועי עכבר</button>
+    <button class="toc-btn" onclick="goTo(7)"><span class="toc-num">5</span>אירועי מקלדת</button>
+    <button class="toc-btn" onclick="goTo(8)"><span class="toc-num">6</span>טעינה וגלילה</button>
+    <button class="toc-btn" onclick="goTo(9)"><span class="toc-num">7</span>מבוא לאירועי טפסים</button>
+    <button class="toc-btn" onclick="goTo(10)"><span class="toc-num">8</span>focus ו-blur</button>
+    <button class="toc-btn" onclick="goTo(11)"><span class="toc-num">9</span>input ו-change</button>
+    <button class="toc-btn" onclick="goTo(12)"><span class="toc-num">10</span>submit מול click</button>
+    <button class="toc-btn" onclick="goTo(13)"><span class="toc-num">11</span>event object</button>
+    <button class="toc-btn" onclick="goTo(14)"><span class="toc-num">12</span>Bubbling</button>
+    <button class="toc-btn" onclick="goTo(15)"><span class="toc-num">13</span>תרגול מוצרים</button>
+    <button class="toc-btn" onclick="goTo(16)"><span class="toc-num">14</span>סינון מוצרים</button>
+    <button class="toc-btn" onclick="goTo(17)"><span class="toc-num">15</span>תרגול מסכם</button>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — DOM RECAP ═══ -->
+<div class="slide" id="slide-3">
+  <div class="slide-number">שקופית 3 מתוך 17</div>
+  <div class="tag">חזרה</div>
+  <h2>חזרה קצרה על DOM</h2>
+  <p>להלן סיכום המושגים המרכזיים מהיחידות הקודמות, כבסיס להמשך:</p>
+  <div class="code-block">// בחירת אלמנט בודד:
+const el = document.querySelector(".card");
+
+// בחירת מספר אלמנטים:
+const items = document.querySelectorAll("li");
+
+// יצירת אלמנט חדש:
+const div = document.createElement("div");
+div.innerText = "תוכן";
+div.classList.add("box");
+
+// הוספה ל-DOM:
+document.getElementById("container").append(div);
+
+// קריאת ערך מ-input:
+const val = document.getElementById("myInput").value;
+
+// האזנה לאירוע click:
+el.addEventListener("click", () => {
+    el.classList.toggle("active");
+});</div>
+  <div class="note">
+    כל הנושאים בשיעור זה מתבססים על יכולות אלו. חשוב לוודא שמושגים אלה מובנים היטב לפני המשך.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — INTRO TO EVENTS ═══ -->
+<div class="slide" id="slide-4">
+  <div class="slide-number">שקופית 4 מתוך 17</div>
+  <div class="tag">אירועים</div>
+  <h2>מבוא לאירועים ב-JavaScript</h2>
+  <p>
+    אירוע (Event) הוא אות שמופק על ידי הדפדפן בתגובה לפעולה — של המשתמש, של הרשת, או של המסמך עצמו.
+    JavaScript מאפשר להגדיר קוד שירוץ <strong>בדיוק כאשר</strong> אירוע מסוים מתרחש.
+  </p>
+  <p>
+    תכנות מבוסס אירועים (Event-driven programming) הוא הבסיס לכל ממשק משתמש ב-web.
+    הקוד אינו רץ ברצף קבוע — הוא <strong>מחכה לאירועים ומגיב אליהם</strong>.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>אירועי משתמש</h3>
+      <ul>
+        <li>לחיצה על כפתור</li>
+        <li>הקלדה בשדה</li>
+        <li>גלילה בעמוד</li>
+        <li>מעבר עכבר</li>
+      </ul>
+    </div>
+    <div>
+      <h3>אירועי מערכת</h3>
+      <ul>
+        <li>סיום טעינת הדף</li>
+        <li>סיום בקשת רשת</li>
+        <li>שינוי גודל חלון</li>
+        <li>שגיאות בזמן ריצה</li>
+      </ul>
+    </div>
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-C# WinForms: <code>button1.Click += Handler;</code> — חיבור handler לאירוע ספציפי.<br>
+    ב-JS: <code>btn.addEventListener("click", handler);</code> — אותו מודל מחשבתי, תחביר שונה.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — EVENT LISTENERS ═══ -->
+<div class="slide" id="slide-5">
+  <div class="slide-number">שקופית 5 מתוך 17</div>
+  <div class="tag">Event Listeners</div>
+  <h2>מאזינים לאירועים — addEventListener</h2>
+  <p>
+    <code>addEventListener</code> היא הדרך המומלצת לחיבור קוד לאירוע.
+    היא מאפשרת הפרדה מלאה בין HTML לבין JavaScript, ותומכת בחיבור מספר handlers לאותו אירוע.
+  </p>
+  <div class="code-block">// תחביר מלא:
+element.addEventListener(eventType, callbackFunction, useCapture);
+
+// דוגמאות נפוצות:
+const btn = document.getElementById("myBtn");
+
+// פונקציה אנונימית:
+btn.addEventListener("click", function() {
+    console.log("נלחץ!");
+});
+
+// Arrow function:
+btn.addEventListener("click", () => {
+    btn.style.backgroundColor = "teal";
+});
+
+// פונקציה מוגדרת נפרד:
+function handleClick() {
+    console.log("handler חיצוני");
+}
+btn.addEventListener("click", handleClick);
+
+// חיבור מספר listeners לאותו אלמנט — אפשרי:
+btn.addEventListener("click", logTime);
+btn.addEventListener("click", updateUI);</div>
+  <div class="note">
+    יש להימנע משימוש ב-<code>onclick="..."</code> ישירות ב-HTML — גישה זו מערבת תוכן ולוגיקה,
+    ומגבילה לhandler אחד בלבד.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — MOUSE EVENTS ═══ -->
+<div class="slide" id="slide-6">
+  <div class="slide-number">שקופית 6 מתוך 17</div>
+  <div class="tag">אירועי עכבר</div>
+  <h2>אירועי עכבר</h2>
+  <p>הדפדפן מפיק אירועים שונים בהתאם לפעולת העכבר מעל אלמנט:</p>
+  <div class="code-block">const box = document.getElementById("box");
+
+// לחיצה בודדת:
+box.addEventListener("click", () => console.log("click"));
+
+// לחיצה כפולה:
+box.addEventListener("dblclick", () => console.log("dblclick"));
+
+// כניסת עכבר לאלמנט (לא עולה לאבות — לא מבעבע):
+box.addEventListener("mouseenter", () => box.classList.add("hover"));
+
+// יציאת עכבר מהאלמנט:
+box.addEventListener("mouseleave", () => box.classList.remove("hover"));
+
+// תנועה של עכבר מעל האלמנט (מופעל ברציפות!):
+box.addEventListener("mousemove", (e) => {
+    console.log("X:", e.clientX, "Y:", e.clientY);
+});</div>
+  <div class="compare-box">
+    <strong>mouseenter לעומת mouseover:</strong><br>
+    <code>mouseenter</code> — מופעל פעם אחת בכניסה לאלמנט, אינו מבעבע.<br>
+    <code>mouseover</code> — מופעל גם בכניסה לילדים, מבעבע לאלמנטי-אב. לרוב עדיף mouseenter.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — KEYBOARD EVENTS ═══ -->
+<div class="slide" id="slide-7">
+  <div class="slide-number">שקופית 7 מתוך 17</div>
+  <div class="tag">אירועי מקלדת</div>
+  <h2>אירועי מקלדת</h2>
+  <p>אירועי מקלדת מאפשרים תגובה להקלדת המשתמש בזמן אמת:</p>
+  <div class="code-block">const input = document.getElementById("searchInput");
+
+// keydown — מופעל ברגע לחיצה על מקש (לפני הכנסת התו):
+input.addEventListener("keydown", (e) => {
+    console.log("מקש שנלחץ:", e.key);
+
+    // זיהוי מקש Enter:
+    if (e.key === "Enter") {
+        performSearch();
+    }
+
+    // זיהוי Escape:
+    if (e.key === "Escape") {
+        input.value = "";
+    }
+});
+
+// keyup — מופעל לאחר שחרור המקש (התו כבר הוכנס):
+input.addEventListener("keyup", (e) => {
+    console.log("ערך נוכחי:", input.value);
+});</div>
+  <div class="note">
+    <code>keypress</code> הוא אירוע ישן שסומן כמיושן (deprecated) ואין להשתמש בו בקוד חדש.
+    יש להשתמש ב-<code>keydown</code> או <code>keyup</code> במקומו.<br><br>
+    <strong>e.key</strong> מחזיר את ייצוג המקש כמחרוזת: "Enter", "Escape", "a", "ArrowUp" וכדומה.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — LOAD & SCROLL ═══ -->
+<div class="slide" id="slide-8">
+  <div class="slide-number">שקופית 8 מתוך 17</div>
+  <div class="tag">טעינה וגלילה</div>
+  <h2>אירועי טעינה וגלילה</h2>
+  <h3>DOMContentLoaded</h3>
+  <p>
+    מופעל ברגע שה-HTML פורס במלואו, לפני שתמונות וסגנונות חיצוניים נטענו.
+    זהו המקום הנכון להפעיל קוד שמצפה שה-DOM יהיה מוכן.
+  </p>
+  <div class="code-block">document.addEventListener("DOMContentLoaded", () => {
+    // ה-DOM מוכן — ניתן לבחור אלמנטים בבטחה
+    const btn = document.getElementById("startBtn");
+    btn.addEventListener("click", init);
+});</div>
+  <h3>load</h3>
+  <p>מופעל רק לאחר טעינה מלאה של כל משאבי הדף (תמונות, גופנים, scripts).</p>
+  <div class="code-block">window.addEventListener("load", () => {
+    console.log("הדף נטען במלואו");
+});</div>
+  <h3>scroll</h3>
+  <div class="code-block">window.addEventListener("scroll", () => {
+    const pos = window.scrollY;
+    if (pos > 300) {
+        document.getElementById("backToTop").style.display = "block";
+    }
+});</div>
+  <div class="compare-box">
+    <strong>כלל מעשי:</strong><br>
+    יש להשתמש ב-<code>DOMContentLoaded</code> לרוב המקרים — הוא מהיר יותר מ-<code>load</code>
+    ומספיק לעבודה עם DOM.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — FORM EVENTS INTRO ═══ -->
+<div class="slide" id="slide-9">
+  <div class="slide-number">שקופית 9 מתוך 17</div>
+  <div class="tag">טפסים</div>
+  <h2>מבוא לאירועי טפסים</h2>
+  <p>
+    טפסים הם הדרך העיקרית לקבלת קלט מהמשתמש. ב-web מודרני,
+    JavaScript שולט באופן מלא בטיפול בנתוני הטופס — בלי טעינת דף מחדש.
+  </p>
+  <p>
+    אירועי טפסים מאפשרים להגיב לכל שינוי, למנוע שליחה שגויה,
+    ולוודא שהנתונים תקינים <strong>לפני</strong> שהם מועברים הלאה.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>אירועים נפוצים</h3>
+      <ul>
+        <li><code>focus</code> — שדה נבחר</li>
+        <li><code>blur</code> — שדה עזב</li>
+        <li><code>input</code> — כל שינוי בזמן אמת</li>
+        <li><code>change</code> — שינוי לאחר יציאה</li>
+        <li><code>submit</code> — שליחת טופס</li>
+      </ul>
+    </div>
+    <div>
+      <h3>שימושים נפוצים</h3>
+      <ul>
+        <li>ולידציה בזמן אמת</li>
+        <li>חיפוש חי (live search)</li>
+        <li>הגדרת ערכי ברירת מחדל</li>
+        <li>מניעת שליחה כפולה</li>
+        <li>הצגת חיווי שגיאה</li>
+      </ul>
+    </div>
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-WinForms: <code>textBox1.TextChanged += Handler;</code><br>
+    ב-JS: <code>input.addEventListener("input", handler);</code> — אותו מודל, ביצוע בדפדפן.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — FOCUS & BLUR ═══ -->
+<div class="slide" id="slide-10">
+  <div class="slide-number">שקופית 10 מתוך 17</div>
+  <div class="tag">focus ו-blur</div>
+  <h2>אירועי focus ו-blur</h2>
+  <p>
+    <code>focus</code> מופעל כאשר אלמנט מקבל פוקוס — לחיצה עליו או Tab.
+    <code>blur</code> מופעל כאשר האלמנט מאבד פוקוס — עזיבת השדה.
+  </p>
+  <div class="code-block">const emailInput = document.getElementById("email");
+const errorMsg  = document.getElementById("emailError");
+
+// כניסה לשדה — ניקוי שגיאות קודמות:
+emailInput.addEventListener("focus", () => {
+    emailInput.classList.remove("error");
+    errorMsg.innerText = "";
+});
+
+// יציאה מהשדה — בדיקת תקינות:
+emailInput.addEventListener("blur", () => {
+    const val = emailInput.value.trim();
+
+    if (!val.includes("@")) {
+        emailInput.classList.add("error");
+        errorMsg.innerText = "כתובת דוא\"ל אינה תקינה";
+    }
+});</div>
+  <div class="two-col">
+    <div>
+      <h3>focus</h3>
+      <ul>
+        <li>ניקוי הודעות שגיאה</li>
+        <li>הדגשת שדה פעיל</li>
+        <li>טעינת נתונים דינמיים</li>
+      </ul>
+    </div>
+    <div>
+      <h3>blur</h3>
+      <ul>
+        <li>ולידציה לאחר הקלדה</li>
+        <li>שמירת ערך אוטומטית</li>
+        <li>הסתרת רשימת השלמה</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — INPUT & CHANGE ═══ -->
+<div class="slide" id="slide-11">
+  <div class="slide-number">שקופית 11 מתוך 17</div>
+  <div class="tag">input ו-change</div>
+  <h2>אירועי input ו-change — השוואה מפורטת</h2>
+  <p>שני האירועים קשורים לשינויים בשדות קלט, אך עם הבדל מהותי בתזמון:</p>
+  <div class="two-col">
+    <div>
+      <h3>input</h3>
+      <p>מופעל <strong>בכל שינוי</strong> — כל הקלדת תו, מחיקה, הדבקה.</p>
+      <div class="code-block">field.addEventListener("input", () => {
+    counter.innerText =
+      field.value.length + " תווים";
+});</div>
+    </div>
+    <div>
+      <h3>change</h3>
+      <p>מופעל רק לאחר <strong>יציאה מהשדה</strong> אם הערך השתנה.</p>
+      <div class="code-block">select.addEventListener("change", () => {
+    filterProducts(select.value);
+});</div>
+    </div>
+  </div>
+  <div class="code-block">// input — מתאים ל: חיפוש חי, ספירת תווים, תצוגה מיידית
+const search = document.getElementById("search");
+search.addEventListener("input", () => {
+    renderResults(search.value);
+});
+
+// change — מתאים ל: dropdown, checkbox, radio, select
+const category = document.getElementById("category");
+category.addEventListener("change", () => {
+    loadCategory(category.value);
+});</div>
+  <div class="note">
+    לשדות <code>input type="text"</code> — יש להשתמש ב-<code>input</code> לתגובה מיידית.<br>
+    לשדות <code>select</code>, <code>checkbox</code>, <code>radio</code> — <code>change</code> הוא הבחירה הטבעית.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — SUBMIT VS CLICK ═══ -->
+<div class="slide" id="slide-12">
+  <div class="slide-number">שקופית 12 מתוך 17</div>
+  <div class="tag">submit מול click</div>
+  <h2>submit מול לחיצה על כפתור</h2>
+  <p>
+    הבדל זה הוא אחד הנושאים הנפוצים לבלבול. <code>submit</code> הוא אירוע של <strong>הטופס</strong>,
+    לא של הכפתור. הוא מופעל גם ב-Enter בשדה, לא רק בלחיצה על כפתור.
+  </p>
+  <div class="code-block">// האזנה לאירוע submit — עדיפה:
+const form = document.getElementById("loginForm");
+
+form.addEventListener("submit", (e) => {
+    e.preventDefault(); // מניעת טעינת דף מחדש — קריטי!
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+        showError("יש למלא את כל השדות");
+        return;
+    }
+
+    sendToServer({ username, password });
+});</div>
+  <div class="code-block">// האזנה ל-click בלבד — חסרה:
+// לא תתפוס Enter בשדה, ולא תתפוס submit מוגדר אחרת.
+btn.addEventListener("click", () => {
+    // פחות מומלץ לטיפול בטפסים
+});</div>
+  <div class="compare-box">
+    <strong>preventDefault — למה הוא קריטי:</strong><br>
+    ברירת המחדל של submit היא ניווט לעמוד חדש ושליחת נתוני הטופס כ-GET/POST.
+    <code>e.preventDefault()</code> מבטל פעולה זו ומאפשר לטפל בנתונים ב-JavaScript.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — EVENT OBJECT ═══ -->
+<div class="slide" id="slide-13">
+  <div class="slide-number">שקופית 13 מתוך 17</div>
+  <div class="tag">event object</div>
+  <h2>אובייקט האירוע (Event Object)</h2>
+  <p>
+    כל handler מקבל אוטומטית פרמטר — ה-event object.
+    אובייקט זה מכיל מידע מלא על האירוע שהתרחש.
+  </p>
+  <div class="code-block">btn.addEventListener("click", (e) => {
+    console.log(e.type);          // "click" — סוג האירוע
+    console.log(e.target);        // האלמנט שנלחץ בפועל
+    console.log(e.currentTarget); // האלמנט שה-listener מחובר אליו
+    console.log(e.clientX);       // מיקום X של העכבר
+    console.log(e.clientY);       // מיקום Y של העכבר
+    console.log(e.timeStamp);     // זמן האירוע
+});
+
+// event object באירוע מקלדת:
+input.addEventListener("keydown", (e) => {
+    console.log(e.key);           // "Enter", "a", "Escape"...
+    console.log(e.shiftKey);      // true/false — Shift לחוץ?
+    console.log(e.ctrlKey);       // true/false — Ctrl לחוץ?
+
+    e.preventDefault();           // מניעת פעולת ברירת מחדל
+});
+
+// target לעומת currentTarget:
+const ul = document.querySelector("ul");
+ul.addEventListener("click", (e) => {
+    console.log(e.target);        // ה-li שנלחץ
+    console.log(e.currentTarget); // ה-ul שה-listener מחובר אליו
+});</div>
+  <div class="note">
+    <code>e.target</code> ו-<code>e.currentTarget</code> יהיו שונים כאשר האירוע מבעבע (bubbling).
+    לרוב, בעבודה עם event delegation, מתעניינים ב-<code>e.target</code>.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — BUBBLING ═══ -->
+<div class="slide" id="slide-14">
+  <div class="slide-number">שקופית 14 מתוך 17</div>
+  <div class="tag">Bubbling</div>
+  <h2>Event Bubbling — בעבוע אירועים</h2>
+  <p>
+    כאשר אירוע מתרחש על אלמנט, הוא מופץ <strong>כלפי מעלה בעץ ה-DOM</strong>
+    לאלמנטי-האב, עד לאובייקט <code>document</code>.
+    תופעה זו נקראת bubbling.
+  </p>
+  <div class="code-block">// מבנה HTML:
+// &lt;div id="outer"&gt;
+//   &lt;div id="inner"&gt;
+//     &lt;button id="btn"&gt;לחץ&lt;/button&gt;
+//   &lt;/div&gt;
+// &lt;/div&gt;
+
+document.getElementById("btn").addEventListener("click", () => {
+    console.log("1. כפתור");
+});
+document.getElementById("inner").addEventListener("click", () => {
+    console.log("2. inner div");
+});
+document.getElementById("outer").addEventListener("click", () => {
+    console.log("3. outer div");
+});
+
+// לחיצה על הכפתור תדפיס:
+// 1. כפתור → 2. inner div → 3. outer div</div>
+  <h3>עצירת bubbling</h3>
+  <div class="code-block">btn.addEventListener("click", (e) => {
+    e.stopPropagation(); // האירוע לא יגיע לאלמנטי-האב
+    console.log("רק הכפתור");
+});</div>
+  <div class="compare-box">
+    <strong>Event Delegation — שימוש מעשי ב-bubbling:</strong><br>
+    ניתן לחבר listener אחד לאלמנט-אב, ולזהות <code>e.target</code> כדי לטפל בכל הילדים —
+    יעיל במיוחד עבור רשימות ורכיבים שנוצרים דינמית.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — PRODUCTS ═══ -->
+<div class="slide" id="slide-15">
+  <div class="slide-number">שקופית 15 מתוך 17</div>
+  <div class="tag">תרגול</div>
+  <h2>תרגול DOM — מערך מוצרים</h2>
+  <p>יצירת כרטיסי מוצר דינמיים ממערך נתונים, תוך שימוש ב-createElement, append ואירועים:</p>
+  <div class="code-block">const products = [
+    { id: 1, name: "מחשב נייד", price: 3200, category: "electronics" },
+    { id: 2, name: "עכבר אלחוטי", price: 89,   category: "electronics" },
+    { id: 3, name: "כיסא משרדי",  price: 650,  category: "furniture" },
+];
+
+function renderProducts(list) {
+    const container = document.getElementById("products");
+    container.innerHTML = ""; // ניקוי לפני רינדור
+
+    list.forEach(product => {
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        card.dataset.id = product.id;
+
+        const name = document.createElement("h3");
+        name.innerText = product.name;
+
+        const price = document.createElement("p");
+        price.innerText = product.price + " ₪";
+
+        const btn = document.createElement("button");
+        btn.innerText = "הוסף לסל";
+        btn.addEventListener("click", () => addToCart(product));
+
+        card.append(name, price, btn);
+        container.append(card);
+    });
+}
+
+renderProducts(products);</div>
+</div>
+
+<!-- ═══ SLIDE 16 — FILTERING ═══ -->
+<div class="slide" id="slide-16">
+  <div class="slide-number">שקופית 16 מתוך 17</div>
+  <div class="tag">סינון</div>
+  <h2>סינון מוצרים — חיפוש וקטגוריה</h2>
+  <p>שילוב סינון לפי טקסט חופשי וסינון לפי קטגוריה, עם רינדור מחדש דינמי:</p>
+  <div class="code-block">const products = [ /* ... */ ];
+
+const searchInput  = document.getElementById("search");
+const categorySelect = document.getElementById("category");
+
+function getFiltered() {
+    const term = searchInput.value.toLowerCase().trim();
+    const cat  = categorySelect.value; // "all" או קטגוריה ספציפית
+
+    return products.filter(p => {
+        const matchText = p.name.toLowerCase().includes(term);
+        const matchCat  = cat === "all" || p.category === cat;
+        return matchText && matchCat;
+    });
+}
+
+function update() {
+    const filtered = getFiltered();
+    renderProducts(filtered);
+
+    const msg = document.getElementById("noResults");
+    msg.style.display = filtered.length === 0 ? "block" : "none";
+}
+
+// שני מקורות סינון — אותה פונקציה:
+searchInput.addEventListener("input", update);
+categorySelect.addEventListener("change", update);</div>
+  <div class="note">
+    חשוב לשים לב: כל שינוי — בחיפוש או בקטגוריה — מפעיל את אותה פונקציה <code>update</code>
+    שמחשבת מחדש את הסינון ומרנדרת מחדש את התוצאות.
+    זהו דפוס נפוץ ויעיל לניהול מצב (state) בממשק משתמש.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 17 — FINAL EXERCISE ═══ -->
+<div class="slide" id="slide-17">
+  <div class="slide-number">שקופית 17 מתוך 17</div>
+  <div class="tag">תרגול מסכם</div>
+  <h2>תרגול מסכם מתקדם — מנהל משימות</h2>
+  <p>
+    תרחיש אמיתי המשלב DOM, אירועים, טפסים, מערכים ורינדור דינמי:
+  </p>
+  <div class="code-block">let tasks = [];
+
+const form    = document.getElementById("taskForm");
+const input   = document.getElementById("taskInput");
+const list    = document.getElementById("taskList");
+const counter = document.getElementById("taskCount");
+
+// הוספת משימה — דרך submit:
+form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    tasks.push({ id: Date.now(), text, done: false });
+    input.value = "";
+    render();
+});
+
+function render() {
+    list.innerHTML = "";
+
+    tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.innerText = task.text;
+        if (task.done) li.classList.add("done");
+
+        // סימון כבוצע בלחיצה:
+        li.addEventListener("click", () => {
+            task.done = !task.done;
+            render();
+        });
+
+        // כפתור מחיקה:
+        const del = document.createElement("button");
+        del.innerText = "מחק";
+        del.addEventListener("click", (e) => {
+            e.stopPropagation(); // מניעת bubbling ל-li
+            tasks = tasks.filter(t => t.id !== task.id);
+            render();
+        });
+
+        li.appendChild(del);
+        list.appendChild(li);
+    });
+
+    counter.innerText = "סה\"כ: " + tasks.length + " משימות";
+}</div>
+  <div class="compare-box">
+    <strong>עיקרון מנחה:</strong><br>
+    המבנה: <strong>state (מערך) → render (DOM) → events (עדכון state) → render</strong>
+    הוא הבסיס לכל framework מודרני (React, Vue). הבנתו ב-vanilla JS היא תשתית חיונית.
+  </div>
+</div>
+
+</div><!-- end slide-container -->
+
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>הקודם</button>
+  <div class="progress-area">
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">שקופית 1 מתוך 17</div>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">הבא</button>
+</div>
+</div>
+
+<script>
+  let current = 1;
+  const total = 17;
+
+  function updateUI() {
+    document.getElementById("prevBtn").disabled = current === 1;
+    document.getElementById("nextBtn").disabled = current === total;
+    const pct = ((current - 1) / (total - 1)) * 100;
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressLabel").textContent = "שקופית " + current + " מתוך " + total;
+  }
+
+  function changeSlide(dir) {
+    document.getElementById("slide-" + current).classList.remove("active");
+    current += dir;
+    document.getElementById("slide-" + current).classList.add("active");
+    updateUI();
+  }
+
+  function goTo(n) {
+    document.getElementById("slide-" + current).classList.remove("active");
+    current = n;
+    document.getElementById("slide-" + current).classList.add("active");
+    updateUI();
+  }
+
+  updateUI();
+</script>
+</body>
+</html>

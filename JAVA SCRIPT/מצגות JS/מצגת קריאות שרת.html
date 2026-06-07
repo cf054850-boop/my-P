@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Server, Fetch & Async JavaScript — מצגת לימודית</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg-card: #FFFFFF;
+    --color-primary: #0F6F6F;
+    --color-bronze: #B08D57;
+    --color-text: #1A1A1A;
+    --color-bg-gradient-start: #0a4a4a;
+    --color-bg-gradient-end: #000000;
+    --color-code-bg: #f4f8f8;
+    --color-code-border: #0F6F6F;
+    --color-highlight: #e8f4f4;
+    --color-compare: #fdf6ec;
+    --color-compare-border: #B08D57;
+    --shadow: 0 8px 40px rgba(0,0,0,0.25);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Assistant', sans-serif;
+    background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--color-text);
+  }
+  .presentation-wrapper { width: 100%; max-width: 860px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .slide-container { width: 100%; }
+  .slide {
+    display: none;
+    background: var(--color-bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 52px;
+    animation: slideIn 0.35s ease;
+    min-height: 480px;
+  }
+  .slide.active { display: block; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-number { font-size: 12px; font-weight: 600; color: var(--color-primary); letter-spacing: 1.5px; margin-bottom: 8px; }
+  h2 { font-size: 28px; font-weight: 700; color: var(--color-primary); margin-bottom: 20px; line-height: 1.3; border-bottom: 2px solid var(--color-highlight); padding-bottom: 12px; }
+  h3 { font-size: 18px; font-weight: 700; color: var(--color-primary); margin: 18px 0 8px; }
+  p { font-size: 16px; line-height: 1.8; color: var(--color-text); margin-bottom: 14px; }
+  ul { padding-right: 22px; margin-bottom: 14px; }
+  ul li { font-size: 15.5px; line-height: 1.85; color: var(--color-text); margin-bottom: 4px; }
+  .code-block {
+    background: var(--color-code-bg);
+    border-right: 4px solid var(--color-code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a3a3a;
+    white-space: pre;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+  .compare-box { background: var(--color-compare); border-right: 4px solid var(--color-compare-border); border-radius: 8px; padding: 14px 18px; margin: 14px 0; font-size: 15px; line-height: 1.75; color: #4a3000; }
+  .compare-box strong { color: var(--color-bronze); font-weight: 700; }
+  .tag { display: inline-block; background: var(--color-highlight); color: var(--color-primary); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; }
+  .note { background: #f0f9f9; border: 1px solid #b2d8d8; border-radius: 8px; padding: 12px 16px; font-size: 14.5px; color: #0a4040; margin-top: 12px; line-height: 1.7; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+
+  /* annotated code block */
+  .code-annotated {
+    background: var(--color-code-bg);
+    border-radius: 8px;
+    margin: 14px 0;
+    overflow: hidden;
+    direction: ltr;
+  }
+  .code-annotated .code-line {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #e0eeee;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .code-annotated .code-line:last-child { border-bottom: none; }
+  .code-annotated .ln {
+    background: #d8eeed;
+    color: #0F6F6F;
+    font-weight: 700;
+    padding: 7px 10px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .code-annotated .lc {
+    padding: 7px 14px;
+    color: #1a3a3a;
+    flex: 1;
+    white-space: pre;
+  }
+  .code-annotated .la {
+    padding: 7px 12px;
+    color: #6a4a00;
+    font-size: 12px;
+    font-family: 'Assistant', sans-serif;
+    background: #fdf6ec;
+    border-right: 3px solid #B08D57;
+    direction: rtl;
+    text-align: right;
+    max-width: 240px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+  }
+  .code-annotated .lc.comment { color: #888; font-style: italic; }
+  .code-annotated .lc.keyword { color: #0F6F6F; font-weight: 700; }
+  .code-annotated .lc.highlight { background: #e0f4f4; }
+
+  /* promise flow diagram */
+  .flow-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .flow-step.step-send    { background: #e8f4f4; border-right: 4px solid #0F6F6F; }
+  .flow-step.step-wait    { background: #fdf6ec; border-right: 4px solid #B08D57; }
+  .flow-step.step-success { background: #edfaf0; border-right: 4px solid #2a9d5c; }
+  .flow-step.step-then    { background: #e8f4f4; border-right: 4px solid #0F6F6F; }
+  .flow-step.step-catch   { background: #fdeaea; border-right: 4px solid #c0392b; }
+  .flow-arrow { text-align: center; color: #aaa; font-size: 18px; line-height: 1; margin: 2px 0; }
+  .flow-step-num {
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .flow-step-num.catch-num { background: #c0392b; }
+  .flow-step-text { font-size: 15px; font-weight: 600; color: var(--color-text); }
+  .flow-step-sub  { font-size: 13px; color: #666; margin-right: 8px; }
+
+  /* Cover */
+  .cover-slide { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 480px; padding: 64px 52px; }
+  .cover-badge { background: var(--color-highlight); color: var(--color-primary); font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; margin-bottom: 28px; letter-spacing: 1px; }
+  .cover-title { font-size: 36px; font-weight: 700; color: var(--color-primary); margin-bottom: 16px; line-height: 1.2; border: none; padding: 0; }
+  .cover-subtitle { font-size: 20px; font-weight: 300; color: #444; margin-bottom: 36px; }
+  .cover-divider { width: 60px; height: 3px; background: var(--color-bronze); border-radius: 99px; margin: 0 auto 36px; }
+  .cover-meta { font-size: 14px; color: #888; }
+
+  /* TOC */
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .toc-btn { background: var(--color-highlight); border: 1.5px solid #c0dede; border-radius: 10px; padding: 10px 14px; font-family: 'Assistant', sans-serif; font-size: 14px; font-weight: 600; color: var(--color-primary); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; text-align: right; display: flex; align-items: center; gap: 10px; }
+  .toc-btn:hover { background: #d0ecec; border-color: var(--color-primary); transform: translateY(-2px); }
+  .toc-num { background: var(--color-primary); color: #fff; font-size: 11px; font-weight: 700; min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* Nav */
+  .nav-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 16px; }
+  .nav-btn { background: var(--color-primary); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-family: 'Assistant', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.15s; min-width: 110px; }
+  .nav-btn:hover { background: #0a5555; transform: translateY(-1px); }
+  .nav-btn:disabled { background: #a0b8b8; cursor: default; transform: none; }
+  .progress-area { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .progress-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--color-bronze); border-radius: 99px; transition: width 0.3s ease; }
+  .progress-label { font-size: 13px; color: rgba(255,255,255,0.7); }
+  @media (max-width: 620px) { .slide { padding: 28px 20px; } h2 { font-size: 22px; } .two-col, .toc-grid { grid-template-columns: 1fr; } .cover-title { font-size: 26px; } .code-annotated .la { display: none; } }
+</style>
+</head>
+<body>
+<div class="presentation-wrapper">
+<div class="slide-container">
+
+<!-- ═══ SLIDE 1 — COVER ═══ -->
+<div class="slide active" id="slide-1">
+  <div class="cover-slide">
+    <div class="cover-badge">JavaScript — יחידה 6</div>
+    <h2 class="cover-title">Local Server, Fetch &amp;<br>Asynchronous JavaScript</h2>
+    <div class="cover-divider"></div>
+    <p class="cover-subtitle">עבודה מול JSON וקריאות שרת ב-JavaScript</p>
+    <p class="cover-meta">קורס JavaScript למתכנתי C# — fetch, Promise, localStorage</p>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — TOC ═══ -->
+<div class="slide" id="slide-2">
+  <div class="slide-number">שקופית 2 מתוך 15</div>
+  <div class="tag">ניווט</div>
+  <h2>תוכן עניינים</h2>
+  <div class="toc-grid">
+    <button class="toc-btn" onclick="goTo(3)"><span class="toc-num">1</span>מבוא ל-Live Server</button>
+    <button class="toc-btn" onclick="goTo(4)"><span class="toc-num">2</span>localhost ופורט 5500</button>
+    <button class="toc-btn" onclick="goTo(5)"><span class="toc-num">3</span>התקנה ב-VS Code</button>
+    <button class="toc-btn" onclick="goTo(6)"><span class="toc-num">4</span>מבוא לאסינכרוניות</button>
+    <button class="toc-btn" onclick="goTo(7)"><span class="toc-num">5</span>בקשה ותגובה</button>
+    <button class="toc-btn" onclick="goTo(8)"><span class="toc-num">6</span>צפייה בנתונים ב-DevTools</button>
+    <button class="toc-btn" onclick="goTo(9)"><span class="toc-num">7</span>מבוא ל-fetch</button>
+    <button class="toc-btn" onclick="goTo(10)"><span class="toc-num">8</span>עבודה עם JSON</button>
+    <button class="toc-btn" onclick="goTo(11)"><span class="toc-num">9</span>קריאת קובץ JSON</button>
+    <button class="toc-btn" onclick="goTo(12)"><span class="toc-num">10</span>ניתוח מלא של fetch</button>
+    <button class="toc-btn" onclick="goTo(13)"><span class="toc-num">11</span>localStorage</button>
+    <button class="toc-btn" onclick="goTo(14)"><span class="toc-num">12</span>Promise Flow</button>
+    <button class="toc-btn" onclick="goTo(15)"><span class="toc-num">13</span>תרגול מסכם</button>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — LIVE SERVER INTRO ═══ -->
+<div class="slide" id="slide-3">
+  <div class="slide-number">שקופית 3 מתוך 15</div>
+  <div class="tag">Live Server</div>
+  <h2>מבוא ל-Live Server</h2>
+  <p>
+    Live Server הוא שרת מקומי קל-משקל המיועד לפיתוח Front-End.
+    הוא מאפשר לפתוח קבצי HTML ב<strong>סביבת שרת</strong> אמיתית מהמחשב,
+    ומרענן את הדפדפן <strong>אוטומטית</strong> בכל שמירת קובץ.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>בלי Live Server</h3>
+      <ul>
+        <li>פתיחת קובץ ישירות מהמחשב (<code>file://</code>)</li>
+        <li>קריאת קבצים חיצוניים חסומה (CORS)</li>
+        <li>fetch לא עובד על קבצים מקומיים</li>
+        <li>רענון ידני אחרי כל שינוי</li>
+      </ul>
+    </div>
+    <div>
+      <h3>עם Live Server</h3>
+      <ul>
+        <li>הדף נטען דרך <code>http://localhost</code></li>
+        <li>קריאת JSON ומשאבים מקומיים אפשרית</li>
+        <li>fetch פועל כצפוי</li>
+        <li>רענון אוטומטי בשמירה</li>
+      </ul>
+    </div>
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-C# ASP.NET: IIS Express מריץ שרת מקומי אוטומטית בעת הרצת הפרויקט.<br>
+    ב-JS Front-End: Live Server ממלא תפקיד דומה — מספק סביבת שרת לפיתוח מקומי.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — LOCALHOST & PORT ═══ -->
+<div class="slide" id="slide-4">
+  <div class="slide-number">שקופית 4 מתוך 15</div>
+  <div class="tag">localhost</div>
+  <h2>localhost ופורט 5500</h2>
+  <p>
+    כאשר Live Server פועל, ניתן לגשת לפרויקט דרך כתובת כגון:
+  </p>
+  <div class="code-block">http://127.0.0.1:5500/index.html
+// או בשם:
+http://localhost:5500/index.html</div>
+  <h3>פירוק הכתובת</h3>
+  <ul>
+    <li><strong>http://</strong> — הפרוטוקול. הדפדפן מתקשר עם השרת כ-HTTP רגיל</li>
+    <li><strong>127.0.0.1 / localhost</strong> — כתובת ה-loopback: "המחשב הזה עצמו". אינה יוצאת לאינטרנט</li>
+    <li><strong>:5500</strong> — הפורט: ה"דלת" שדרכה שרת Live Server מאזין. ניתן לשינוי בהגדרות</li>
+    <li><strong>/index.html</strong> — הנתיב לקובץ בתוך תיקיית הפרויקט</li>
+  </ul>
+  <div class="note">
+    פורט הוא מספר שמאפשר להריץ מספר שרתים על אותו מחשב בו-זמנית.
+    כל שרת מאזין על פורט שונה. Live Server משתמש ב-5500 כברירת מחדל,
+    אך אם הפורט תפוס — הוא יעבור ל-5501, 5502 וכן הלאה.
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    IIS Express ב-Visual Studio מריץ שרת על פורט כגון <code>:44300</code>.<br>
+    הרעיון זהה — שרת מקומי על פורט ייחודי.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — INSTALLATION ═══ -->
+<div class="slide" id="slide-5">
+  <div class="slide-number">שקופית 5 מתוך 15</div>
+  <div class="tag">VS Code</div>
+  <h2>התקנה והפעלה ב-VS Code</h2>
+  <p>
+    Live Server זמין כהרחבה (Extension) חינמית ל-VS Code,
+    ומציע אינטגרציה מלאה עם סביבת העריכה.
+  </p>
+  <h3>שלבי התקנה</h3>
+  <ul>
+    <li>פתיחת VS Code → לחיצה על אייקון Extensions (Ctrl+Shift+X)</li>
+    <li>חיפוש: <strong>Live Server</strong> (מאת Ritwick Dey)</li>
+    <li>לחיצה על Install</li>
+  </ul>
+  <h3>הפעלה</h3>
+  <div class="code-block">// שיטה 1 — לחיצה ימנית על קובץ HTML:
+// "Open with Live Server"
+
+// שיטה 2 — לחיצה על כפתור בשורת הסטטוס:
+// "Go Live" (בתחתית המסך)
+
+// שיטה 3 — Command Palette (Ctrl+Shift+P):
+// "Live Server: Open with Live Server"</div>
+  <h3>מבנה פרויקט מומלץ</h3>
+  <div class="code-block">my-project/
+├── index.html
+├── style.css
+├── script.js
+└── data/
+    └── flights.json   ← קובץ הנתונים</div>
+  <div class="note">
+    חשוב לפתוח את <strong>תיקיית הפרויקט</strong> ב-VS Code (File → Open Folder),
+    ולא קובץ בודד. כך Live Server מגיש את כל הקבצים בצורה נכונה.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — ASYNC INTRO ═══ -->
+<div class="slide" id="slide-6">
+  <div class="slide-number">שקופית 6 מתוך 15</div>
+  <div class="tag">אסינכרוניות</div>
+  <h2>מבוא לאסינכרוניות</h2>
+  <p>
+    JavaScript היא שפה <strong>חד-תהליכית</strong> (single-threaded) — רק פעולה אחת מתבצעת בכל רגע.
+    כדי שפעולות ארוכות (כגון קריאת שרת) לא יקפיאו את כל הממשק,
+    JavaScript מבצעת אותן <strong>אסינכרונית</strong> — ממשיכה לרוץ, ומטפלת בתגובה כשתגיע.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>סינכרוני (Synchronous)</h3>
+      <ul>
+        <li>שורה אחר שורה, בסדר</li>
+        <li>כל שורה מחכה לסיום הקודמת</li>
+        <li>פעולה ארוכה — חוסמת הכל</li>
+        <li>כמו תור בסופרמרקט</li>
+      </ul>
+    </div>
+    <div>
+      <h3>אסינכרוני (Asynchronous)</h3>
+      <ul>
+        <li>פעולה מתחילה, קוד ממשיך</li>
+        <li>תגובה מטופלת כשתגיע</li>
+        <li>לא חוסם את הממשק</li>
+        <li>כמו הזמנת אוכל — ממשיכים לשבת</li>
+      </ul>
+    </div>
+  </div>
+  <div class="code-block">console.log("1 — לפני הבקשה");
+
+fetch("./data.json")
+    .then(res => res.json())
+    .then(data => {
+        console.log("3 — הנתונים הגיעו:", data);
+    });
+
+console.log("2 — אחרי הבקשה (לפני שהנתונים הגיעו!)");
+
+// סדר הפלט: 1 → 2 → 3</div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    ב-C#: <code>async/await</code> עם <code>Task</code> — אותו עיקרון של אי-חסימה.<br>
+    ב-JS: <code>Promise</code> עם <code>.then()</code> הוא המנגנון המסורתי. גם ב-JS קיים <code>async/await</code>.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — REQUEST / RESPONSE ═══ -->
+<div class="slide" id="slide-7">
+  <div class="slide-number">שקופית 7 מתוך 15</div>
+  <div class="tag">Request / Response</div>
+  <h2>כיצד הדפדפן עובד עם קריאות שרת</h2>
+  <p>
+    כל קריאה ל-fetch עוברת מחזור של בקשה-תגובה (Request-Response).
+    מכיוון שהרשת אינה מיידית, התגובה מגיעה <strong>לאחר זמן לא ידוע</strong>,
+    ולכן לא ניתן להמתין לה בצורה סינכרונית.
+  </p>
+  <div class="code-block">// מה שקורה כשכותבים:
+fetch("./flights.json")
+
+// 1. הדפדפן שולח בקשת HTTP GET לשרת
+// 2. הדפדפן לא מחכה — ממשיך לשורה הבאה
+// 3. בשלב מסוים, השרת מחזיר תגובה (Response)
+// 4. הדפדפן "מעיר" את ה-.then() הראשון עם ה-Response
+// 5. result.json() מפרסר את גוף התגובה — גם זה אסינכרוני!
+// 6. ה-.then() השני מקבל את הנתונים הסופיים</div>
+  <div class="note">
+    <strong>מדוע <code>.then()</code> מקבל פונקציה?</strong><br>
+    כי לא ידוע מתי התגובה תגיע. במקום "לחכות" (וחסום), רושמים פונקציה
+    שתופעל <em>כשהנתונים יהיו מוכנים</em>. זהו עיקרון ה-callback
+    שעליו מבוסס כל מנגנון ה-Promise.
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    <code>HttpClient.GetAsync(url).ContinueWith(task => { ... })</code> — אותה זרימה: שלח בקשה, המשך, טפל כשתגיע.<br>
+    <code>await</code> ב-C# וב-JS מסתיר את ה-callback ומהפך את הקוד לקריא יותר.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — DEVTOOLS ═══ -->
+<div class="slide" id="slide-8">
+  <div class="slide-number">שקופית 8 מתוך 15</div>
+  <div class="tag">DevTools</div>
+  <h2>צפייה בנתונים בדפדפן — DevTools</h2>
+  <p>
+    כלי הפיתוח של הדפדפן (F12) מכילים לשוניות ייעודיות למעקב אחרי
+    קריאות רשת, נתונים שמורים ותוצאות JSON.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>Network Tab</h3>
+      <ul>
+        <li>כל בקשות ה-HTTP שנשלחו</li>
+        <li>סטטוס התגובה (200, 404, 500)</li>
+        <li>גוף התגובה ב-JSON</li>
+        <li>זמן הבקשה וגודלה</li>
+        <li>Headers של הבקשה והתגובה</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Application Tab</h3>
+      <ul>
+        <li>צפייה ב-localStorage</li>
+        <li>צפייה ב-sessionStorage</li>
+        <li>עריכה ומחיקה ידנית</li>
+        <li>Cookies</li>
+        <li>Cache Storage</li>
+      </ul>
+    </div>
+  </div>
+  <h3>שימוש אופייני בפיתוח</h3>
+  <div class="code-block">// לאחר קריאת fetch:
+// 1. פתיחת DevTools (F12)
+// 2. לשונית Network → לחיצה על בקשת ה-JSON
+// 3. לשונית Preview → צפייה במבנה הנתונים
+
+// לאחר שמירה ב-localStorage:
+// 1. לשונית Application → Local Storage → origin
+// 2. צפייה בכל מפתחות הערך שנשמרו</div>
+  <div class="note">
+    כאשר fetch אינו עובד, הצעד הראשון הוא תמיד בדיקת לשונית Network.
+    קוד תגובה 200 = הצלחה, 404 = הקובץ לא נמצא, 0 / Failed = בעיית CORS או שרת לא פועל.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — FETCH INTRO ═══ -->
+<div class="slide" id="slide-9">
+  <div class="slide-number">שקופית 9 מתוך 15</div>
+  <div class="tag">fetch</div>
+  <h2>מבוא ל-fetch</h2>
+  <p>
+    <code>fetch</code> היא פונקציה מובנית בדפדפן לשליחת בקשות HTTP.
+    היא מחזירה <strong>Promise</strong> — אובייקט המייצג ערך שיהיה זמין בעתיד.
+  </p>
+  <div class="code-block">// מבנה בסיסי:
+fetch(url)
+    .then(response => { /* טיפול בתגובה */ })
+    .catch(error   => { /* טיפול בשגיאה */ });
+
+// דוגמה פשוטה:
+fetch("./products.json")
+    .then(response => response.json()) // המרת התגובה ל-JavaScript
+    .then(data => {
+        console.log(data); // שימוש בנתונים
+    })
+    .catch(err => {
+        console.error("שגיאה:", err);
+    });</div>
+  <div class="note">
+    <code>fetch</code> <strong>אינו</strong> זורק שגיאה על תגובת HTTP שגויה (404, 500).
+    הוא רק נכשל אם הבקשה לא הגיעה כלל (שגיאת רשת, CORS).
+    לכן יש לבדוק ידנית את <code>response.ok</code> ולזרוק שגיאה במידת הצורך.
+  </div>
+  <div class="compare-box">
+    <strong>השוואה ל-C#:</strong><br>
+    <code>new HttpClient().GetAsync(url)</code> — מחזיר <code>Task&lt;HttpResponseMessage&gt;</code>.<br>
+    ב-JS: <code>fetch(url)</code> — מחזיר <code>Promise&lt;Response&gt;</code>. אותו רעיון, אחרת ממומש.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — JSON ═══ -->
+<div class="slide" id="slide-10">
+  <div class="slide-number">שקופית 10 מתוך 15</div>
+  <div class="tag">JSON</div>
+  <h2>עבודה עם JSON</h2>
+  <p>
+    JSON (JavaScript Object Notation) הוא פורמט טקסטואלי לשמירה והעברה של נתונים מובנים.
+    הוא שפה ניטרלית — ניתן לקרוא ולייצר JSON בכל שפת תכנות.
+  </p>
+  <div class="two-col">
+    <div>
+      <h3>אובייקט JavaScript</h3>
+      <div class="code-block">const flight = {
+  id: 1,
+  from: "TLV",
+  to: "LHR",
+  seats: 42
+};</div>
+    </div>
+    <div>
+      <h3>מחרוזת JSON</h3>
+      <div class="code-block">'{
+  "id": 1,
+  "from": "TLV",
+  "to": "LHR",
+  "seats": 42
+}'</div>
+    </div>
+  </div>
+  <div class="code-block">// אובייקט JS → מחרוזת JSON (לשמירה/שליחה):
+const str = JSON.stringify(flight);
+// '{"id":1,"from":"TLV","to":"LHR","seats":42}'
+
+// מחרוזת JSON → אובייקט JS (לשימוש):
+const obj = JSON.parse(str);
+console.log(obj.from); // "TLV"
+
+// הבדל מהותי: response.json() לעומת JSON.parse():
+// response.json() — ממיר את גוף התגובה מ-HTTP Response
+// JSON.parse()    — ממיר מחרוזת טקסט רגילה</div>
+</div>
+
+<!-- ═══ SLIDE 11 — READ LOCAL JSON ═══ -->
+<div class="slide" id="slide-11">
+  <div class="slide-number">שקופית 11 מתוך 15</div>
+  <div class="tag">קובץ JSON</div>
+  <h2>קריאת קובץ JSON מתוך הפרויקט</h2>
+  <p>
+    ניתן לאחסן נתונים בקובץ <code>.json</code> בתוך הפרויקט ולטעון אותם
+    באמצעות <code>fetch</code>. פעולה זו דורשת שרת מקומי — כלומר Live Server חייב לפעול.
+  </p>
+  <h3>מבנה קובץ flights.json</h3>
+  <div class="code-block">{
+    "flights": [
+        { "id": 1, "from": "TLV", "to": "LHR", "price": 450 },
+        { "id": 2, "from": "TLV", "to": "CDG", "price": 320 },
+        { "id": 3, "from": "TLV", "to": "JFK", "price": 680 }
+    ]
+}</div>
+  <h3>קריאת הקובץ</h3>
+  <div class="code-block">// נתיב יחסי לתיקיית הפרויקט:
+fetch("./flights.json")
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.flights); // מערך הטיסות
+        data.flights.forEach(f => {
+            console.log(f.from + " → " + f.to);
+        });
+    });</div>
+  <div class="note">
+    פתיחת קובץ ה-HTML ישירות מהמחשב (file://) תגרום ל-fetch להיכשל עם שגיאת CORS.
+    יש תמיד לפתוח את הפרויקט דרך Live Server (<code>http://localhost:5500</code>).
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — FULL FETCH ANALYSIS ═══ -->
+<div class="slide" id="slide-12">
+  <div class="slide-number">שקופית 12 מתוך 15</div>
+  <div class="tag">ניתוח מלא</div>
+  <h2>ניתוח מלא — קוד fetch שלב אחר שלב</h2>
+  <div class="code-annotated">
+    <div class="code-line">
+      <div class="ln">1</div>
+      <div class="lc comment">// מטרה: טעינת נתונים מקובץ חיצוני ושמירה ב-localStorage</div>
+      <div class="la"></div>
+    </div>
+    <div class="code-line">
+      <div class="ln">2</div>
+      <div class="lc highlight">fetch("./flights.json")</div>
+      <div class="la">שלב 1 — שליחת בקשת GET לשרת. מחזיר Promise</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">3</div>
+      <div class="lc">.then(result => {</div>
+      <div class="la">כשהתגובה הגיעה — result = אובייקט Response</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">4</div>
+      <div class="lc comment">    debugger</div>
+      <div class="la">נקודת עצירה לדיבאג בDevTools</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">5</div>
+      <div class="lc">    if (!result.ok)</div>
+      <div class="la">result.ok = true אם קוד 200–299</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">6</div>
+      <div class="lc highlight">        throw new Error("שגיאה");</div>
+      <div class="la">מעביר לcatch — fetch לא עושה זאת לבד!</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">7</div>
+      <div class="lc">    return result.json();</div>
+      <div class="la">ממיר גוף התגובה ל-JS — גם זה Promise!</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">8</div>
+      <div class="lc">})</div>
+      <div class="la"></div>
+    </div>
+    <div class="code-line">
+      <div class="ln">9</div>
+      <div class="lc">.then(data => {</div>
+      <div class="la">data = הנתונים הסופיים כאובייקט JS</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">10</div>
+      <div class="lc highlight">    localStorage.setItem("flights", JSON.stringify(data));</div>
+      <div class="la">שמירה: אובייקט → JSON string → Storage</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">11</div>
+      <div class="lc">    console.log(data.flights);</div>
+      <div class="la">גישה ישירה לנתונים בזיכרון</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">12</div>
+      <div class="lc highlight">    createFlights(JSON.parse(localStorage["flights"]));</div>
+      <div class="la">שליפה: Storage string → JSON.parse → אובייקט</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">13</div>
+      <div class="lc">})</div>
+      <div class="la"></div>
+    </div>
+    <div class="code-line">
+      <div class="ln">14</div>
+      <div class="lc">.catch(function () {</div>
+      <div class="la">מופעל: שגיאת רשת או throw מה-.then</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">15</div>
+      <div class="lc">    alert("שגיאה");</div>
+      <div class="la">טיפול בשגיאה — חשוב לאף פרויקט</div>
+    </div>
+    <div class="code-line">
+      <div class="ln">16</div>
+      <div class="lc">});</div>
+      <div class="la"></div>
+    </div>
+  </div>
+  <div class="note">
+    <strong>מדוע הגישה לנתונים היא דווקא בתוך <code>.then</code>?</strong><br>
+    כי fetch הוא אסינכרוני — הנתונים אינם קיימים בשורה שאחרי fetch.
+    כל קוד שתלוי בנתונים חייב להיות <em>בתוך</em> ה-<code>.then</code> הרלוונטי.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — LOCALSTORAGE ═══ -->
+<div class="slide" id="slide-13">
+  <div class="slide-number">שקופית 13 מתוך 15</div>
+  <div class="tag">localStorage</div>
+  <h2>localStorage — שמירת נתונים בדפדפן</h2>
+  <p>
+    <code>localStorage</code> מאפשר שמירת נתונים <strong>קבועה</strong> בדפדפן —
+    הנתונים נשארים גם לאחר סגירת הדפדפן ורענון הדף, עד שנמחקים ידנית.
+  </p>
+  <div class="code-block">// שמירה (מחרוזות בלבד — אובייקט דורש stringify):
+localStorage.setItem("username", "yossi");
+localStorage.setItem("flights", JSON.stringify(flightsArray));
+
+// שליפה:
+const name   = localStorage.getItem("username");
+const raw    = localStorage.getItem("flights");
+const flights = JSON.parse(raw); // חזרה לאובייקט
+
+// שליפה עם ערך ברירת מחדל:
+const theme = localStorage.getItem("theme") || "light";
+
+// מחיקה:
+localStorage.removeItem("username");
+localStorage.clear(); // מחיקת הכל
+
+// בדיקת קיום:
+if (localStorage.getItem("flights")) {
+    // יש נתונים שמורים — אין צורך לטעון מחדש
+    const cached = JSON.parse(localStorage.getItem("flights"));
+    createFlights(cached);
+} else {
+    // אין נתונים — טעינה מהשרת
+    fetch("./flights.json")...
+}</div>
+  <div class="compare-box">
+    <strong>דפוס נפוץ — Cache מקומי:</strong><br>
+    טעינת נתונים מהשרת פעם אחת → שמירה ב-localStorage → בטעינות הבאות שימוש בגרסה המקומית.
+    חוסך בקשות רשת מיותרות ומשפר ביצועים.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — PROMISE FLOW ═══ -->
+<div class="slide" id="slide-14">
+  <div class="slide-number">שקופית 14 מתוך 15</div>
+  <div class="tag">Promise Flow</div>
+  <h2>זרימת Promise — תרשים מושגי</h2>
+  <p>
+    Promise מייצג פעולה שתסתיים בעתיד. היא יכולה להסתיים בהצלחה (resolve)
+    או בכישלון (reject). כל שלב בשרשרת <code>.then()</code> מקבל את תוצאת השלב הקודם.
+  </p>
+  <div class="flow-diagram">
+    <div class="flow-step step-send">
+      <div class="flow-step-num">1</div>
+      <div>
+        <div class="flow-step-text">fetch("./flights.json") — שליחת בקשה</div>
+        <div class="flow-step-sub">הדפדפן שולח HTTP GET לשרת. מחזיר Promise. הקוד ממשיך לרוץ.</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step step-wait">
+      <div class="flow-step-num">2</div>
+      <div>
+        <div class="flow-step-text">ממתין לתגובה (Pending)</div>
+        <div class="flow-step-sub">Promise במצב "ממתין". שאר הקוד ממשיך לרוץ במקביל.</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step step-success">
+      <div class="flow-step-num">3</div>
+      <div>
+        <div class="flow-step-text">.then(result =>) — תגובה הגיעה</div>
+        <div class="flow-step-sub">result = Response object. בדיקת result.ok, החזרת result.json()</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step step-then">
+      <div class="flow-step-num">4</div>
+      <div>
+        <div class="flow-step-text">.then(data =>) — JSON פורסר</div>
+        <div class="flow-step-sub">data = אובייקט JS מוכן לשימוש. כאן מתבצעים הרינדור והשמירה.</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓ (רק אם יש שגיאה)</div>
+    <div class="flow-step step-catch">
+      <div class="flow-step-num catch-num">!</div>
+      <div>
+        <div class="flow-step-text">.catch(err =>) — טיפול בשגיאה</div>
+        <div class="flow-step-sub">מופעל בשגיאת רשת, CORS, או throw מכל .then לפניו.</div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    <code>.catch</code> בסוף השרשרת תופס שגיאות מ<strong>כל</strong> ה-<code>.then</code> שלפניו —
+    לא רק מהאחרון. זוהי ההסיבה שכותבים <code>catch</code> אחד בסוף ולא לכל <code>then</code>.
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — SUMMARY EXERCISE ═══ -->
+<div class="slide" id="slide-15">
+  <div class="slide-number">שקופית 15 מתוך 15</div>
+  <div class="tag">תרגול מסכם</div>
+  <h2>תרגול מסכם — מערכת טיסות</h2>
+  <p>
+    תרחיש מלא: טעינת טיסות מ-JSON, שמירה ב-localStorage, רינדור לכרטיסים, וסינון לפי יעד.
+  </p>
+  <div class="code-block">// --- script.js ---
+
+function createFlightCard(flight) {
+    const card = document.createElement("div");
+    card.classList.add("flight-card");
+    card.dataset.to = flight.to;
+
+    card.innerHTML = `
+        &lt;h3&gt;${flight.from} &#8594; ${flight.to}&lt;/h3&gt;
+        &lt;p&gt;מחיר: ${flight.price} $&lt;/p&gt;
+        &lt;p&gt;מקומות: ${flight.seats}&lt;/p&gt;
+    `;
+    document.getElementById("flightsContainer").append(card);
+}
+
+function createFlights(data) {
+    document.getElementById("flightsContainer").innerHTML = "";
+    data.flights.forEach(createFlightCard);
+}
+
+function filterFlights(destination) {
+    const cards = document.querySelectorAll(".flight-card");
+    cards.forEach(card => {
+        const match = !destination || card.dataset.to === destination;
+        card.style.display = match ? "block" : "none";
+    });
+}
+
+// טעינה — עם cache ב-localStorage:
+document.addEventListener("DOMContentLoaded", () => {
+    const cached = localStorage.getItem("flights");
+
+    if (cached) {
+        createFlights(JSON.parse(cached));
+    } else {
+        fetch("./flights.json")
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                return res.json();
+            })
+            .then(data => {
+                localStorage.setItem("flights", JSON.stringify(data));
+                createFlights(data);
+            })
+            .catch(() => alert("לא ניתן לטעון את הנתונים"));
+    }
+
+    document.getElementById("filterInput")
+        .addEventListener("input", e => filterFlights(e.target.value.toUpperCase()));
+});</div>
+</div>
+
+</div><!-- end slide-container -->
+
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>הקודם</button>
+  <div class="progress-area">
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">שקופית 1 מתוך 15</div>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">הבא</button>
+</div>
+</div>
+
+<script>
+  let current = 1;
+  const total = 15;
+  function updateUI() {
+    document.getElementById("prevBtn").disabled = current === 1;
+    document.getElementById("nextBtn").disabled = current === total;
+    document.getElementById("progressFill").style.width = ((current-1)/(total-1)*100) + "%";
+    document.getElementById("progressLabel").textContent = "שקופית " + current + " מתוך " + total;
+  }
+  function changeSlide(dir) {
+    document.getElementById("slide-"+current).classList.remove("active");
+    current += dir;
+    document.getElementById("slide-"+current).classList.add("active");
+    updateUI();
+  }
+  function goTo(n) {
+    document.getElementById("slide-"+current).classList.remove("active");
+    current = n;
+    document.getElementById("slide-"+current).classList.add("active");
+    updateUI();
+  }
+  updateUI();
+</script>
+</body>
+</html>

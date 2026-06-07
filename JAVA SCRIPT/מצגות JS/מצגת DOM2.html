@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript DOM מתקדם — מצגת לימודית</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg-card: #FFFFFF;
+      --color-primary: #0F6F6F;
+      --color-bronze: #B08D57;
+      --color-text: #1A1A1A;
+      --color-bg-gradient-start: #0a4a4a;
+      --color-bg-gradient-end: #000000;
+      --color-code-bg: #f4f8f8;
+      --color-code-border: #0F6F6F;
+      --color-highlight: #e8f4f4;
+      --color-compare: #fdf6ec;
+      --color-compare-border: #B08D57;
+      --shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Assistant', sans-serif;
+      background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--color-text);
+    }
+
+    .presentation-wrapper {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .slide-container {
+      width: 100%;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      background: var(--color-bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 48px 52px;
+      animation: slideIn 0.35s ease;
+      min-height: 480px;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-number {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      line-height: 1.3;
+      border-bottom: 2px solid var(--color-highlight);
+      padding-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 18px 0 8px;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--color-text);
+      margin-bottom: 14px;
+    }
+
+    ul {
+      padding-right: 22px;
+      margin-bottom: 16px;
+    }
+
+    ul li {
+      font-size: 15.5px;
+      line-height: 1.85;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+
+    .code-block {
+      background: var(--color-code-bg);
+      border-right: 4px solid var(--color-code-border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 16px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #1a3a3a;
+      white-space: pre;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .compare-box {
+      background: var(--color-compare);
+      border-right: 4px solid var(--color-compare-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 15px;
+      line-height: 1.75;
+      color: #4a3000;
+    }
+
+    .compare-box strong {
+      color: var(--color-bronze);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--color-highlight);
+      color: var(--color-primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .note {
+      background: #f0f9f9;
+      border: 1px solid #b2d8d8;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14.5px;
+      color: #0a4040;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 12px 0;
+    }
+
+    /* Cover */
+    .cover-slide {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 480px;
+      padding: 64px 52px;
+    }
+
+    .cover-badge {
+      background: var(--color-highlight);
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+
+    .cover-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 16px;
+      line-height: 1.2;
+      border: none;
+      padding: 0;
+    }
+
+    .cover-subtitle {
+      font-size: 20px;
+      font-weight: 300;
+      color: #444;
+      margin-bottom: 36px;
+    }
+
+    .cover-divider {
+      width: 60px;
+      height: 3px;
+      background: var(--color-bronze);
+      border-radius: 99px;
+      margin: 0 auto 36px;
+    }
+
+    .cover-meta {
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* TOC */
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .toc-btn {
+      background: var(--color-highlight);
+      border: 1.5px solid #c0dede;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-family: 'Assistant', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toc-btn:hover {
+      background: #d0ecec;
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+
+    .toc-num {
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Nav */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-family: 'Assistant', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      min-width: 110px;
+    }
+
+    .nav-btn:hover {
+      background: #0a5555;
+      transform: translateY(-1px);
+    }
+
+    .nav-btn:disabled {
+      background: #a0b8b8;
+      cursor: default;
+      transform: none;
+    }
+
+    .progress-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--color-bronze);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    @media (max-width: 600px) {
+      .slide {
+        padding: 28px 22px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      .two-col,
+      .toc-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cover-title {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="presentation-wrapper">
+    <div class="slide-container">
+
+      <!-- Slide 1 — Cover -->
+      <div class="slide active" id="slide-1">
+        <div class="cover-slide">
+          <div class="cover-badge">JavaScript — DOM מתקדם</div>
+          <h2 class="cover-title">עבודה מתקדמת<br>עם DOM</h2>
+          <div class="cover-divider"></div>
+          <p class="cover-subtitle">querySelectorAll, אירועים, traversal ויצירת אלמנטים</p>
+          <p class="cover-meta">קורס JavaScript למתכנתי C# — יחידה 2</p>
+        </div>
+      </div>
+
+      <!-- Slide 2 — TOC -->
+      <div class="slide" id="slide-2">
+        <div class="slide-number">שקופית 2 מתוך 14</div>
+        <div class="tag">ניווט</div>
+        <h2>תוכן עניינים</h2>
+        <div class="toc-grid">
+          <button class="toc-btn" onclick="goTo(3)"><span class="toc-num">1</span>מבוא ל-querySelectorAll</button>
+          <button class="toc-btn" onclick="goTo(4)"><span class="toc-num">2</span>עבודה עם querySelectorAll</button>
+          <button class="toc-btn" onclick="goTo(5)"><span class="toc-num">3</span>ריצה על אוסף אלמנטים</button>
+          <button class="toc-btn" onclick="goTo(6)"><span class="toc-num">4</span>NodeList לעומת מערך</button>
+          <button class="toc-btn" onclick="goTo(7)"><span class="toc-num">5</span>this בהקשר ל-DOM</button>
+          <button class="toc-btn" onclick="goTo(8)"><span class="toc-num">6</span>פונקציות חץ ו-this</button>
+          <button class="toc-btn" onclick="goTo(9)"><span class="toc-num">7</span>טיול על ה-DOM</button>
+          <button class="toc-btn" onclick="goTo(10)"><span class="toc-num">8</span>createElement</button>
+          <button class="toc-btn" onclick="goTo(11)"><span class="toc-num">9</span>append / appendChild</button>
+          <button class="toc-btn" onclick="goTo(12)"><span class="toc-num">10</span>בניית מבנה דינמי</button>
+          <button class="toc-btn" onclick="goTo(13)"><span class="toc-num">11</span>תרגול משולב</button>
+          <button class="toc-btn" onclick="goTo(14)"><span class="toc-num">12</span>תרגול מתקדם</button>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="slide" id="slide-3">
+        <div class="slide-number">שקופית 3 מתוך 14</div>
+        <div class="tag">querySelectorAll</div>
+        <h2>מבוא ל-querySelectorAll</h2>
+        <p>
+          בעוד ש-<code>querySelector</code> מחזיר אלמנט <strong>בודד</strong> (הראשון שנמצא),
+          <code>querySelectorAll</code> מחזיר <strong>את כל האלמנטים</strong> התואמים לבורר CSS
+          בצורת <strong>NodeList</strong> — אוסף סטטי של צמתים.
+        </p>
+        <div class="code-block">// מחזיר NodeList של כל האלמנטים עם class="card"
+          const cards = document.querySelectorAll(".card");
+
+          console.log(cards); // NodeList(3) [div, div, div]
+          console.log(cards.length); // 3
+          console.log(cards[0]); // האלמנט הראשון</div>
+        <ul>
+          <li>אם לא נמצאו אלמנטים — מוחזרת NodeList ריקה (לא null)</li>
+          <li>הבורר יכול להיות כל בורר CSS תקין: tag, class, id, מורכב</li>
+          <li>הערכים מסודרים לפי סדר הופעתם במסמך</li>
+        </ul>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          ב-C# (LINQ): <code>controls.OfType&lt;Button&gt;()</code> מחזיר אוסף של רכיבים מסוג מסוים.<br>
+          ב-JS: <code>querySelectorAll("button")</code> — אותו רעיון, על בסיס בוררי CSS.
+        </div>
+      </div>
+
+      <!-- Slide 4 -->
+      <div class="slide" id="slide-4">
+        <div class="slide-number">שקופית 4 מתוך 14</div>
+        <div class="tag">querySelectorAll</div>
+        <h2>עבודה עם querySelectorAll</h2>
+        <p>ניתן להשתמש בבוררים מורכבים כדי לשלוף אלמנטים לפי מבנה מקונן:</p>
+        <div class="code-block">// כל כפתורים בתוך div עם id="menu"
+          const btns = document.querySelectorAll("#menu button");
+
+          // כל li עם class="active"
+          const activeItems = document.querySelectorAll("li.active");
+
+          // שני בוררים יחד (פסיק — union)
+          const all = document.querySelectorAll("h2, h3");
+
+          // גישה לאיבר לפי אינדקס
+          console.log(btns[0]); // הכפתור הראשון
+          console.log(btns[btns.length - 1]); // האחרון</div>
+        <div class="note">
+          ה-NodeList שמוחזרת היא <strong>סטטית</strong> — אינה מתעדכנת אוטומטית
+          אם ה-DOM משתנה לאחר השליפה. בניגוד לכך, <code>getElementsByClassName</code>
+          מחזיר אוסף <em>חי</em> (live collection) שמשתנה עם ה-DOM.
+        </div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          גישה לפי אינדקס: <code>list[0]</code> — זהה בתחביר.<br>
+          ב-JS: <code>nodeList[0]</code> — אותה גישה, על NodeList.
+        </div>
+      </div>
+
+      <!-- Slide 5 -->
+      <div class="slide" id="slide-5">
+        <div class="slide-number">שקופית 5 מתוך 14</div>
+        <div class="tag">לולאות</div>
+        <h2>ריצה על אוסף אלמנטים</h2>
+        <p>יש מספר דרכים לעבור על כל אלמנטי ה-NodeList:</p>
+        <h3>לולאת for קלאסית</h3>
+        <div class="code-block">const items = document.querySelectorAll(".item");
+
+          for (let i = 0; i &lt; items.length; i++) {
+          items[i].style.color = "teal";
+          }</div>
+        <h3>לולאת for...of</h3>
+        <div class="code-block">for (const item of items) {
+          item.classList.add("highlighted");
+          }</div>
+        <h3>forEach</h3>
+        <div class="code-block">items.forEach((item, index) => {
+          item.innerText = "פריט מספר " + (index + 1);
+          });</div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          ב-C#: <code>foreach (var item in items) { ... }</code><br>
+          ב-JS: <code>for...of</code> — תחביר כמעט זהה.<br>
+          <code>forEach</code> מקביל ל-<code>.ToList().ForEach()</code> ב-LINQ.
+        </div>
+      </div>
+
+      <!-- Slide 6 -->
+      <div class="slide" id="slide-6">
+        <div class="slide-number">שקופית 6 מתוך 14</div>
+        <div class="tag">NodeList vs Array</div>
+        <h2>השוואה בין NodeList למערך רגיל</h2>
+        <p>
+          NodeList נראית כמו מערך אך <strong>אינה מערך מלא</strong>.
+          היא תומכת ב-<code>forEach</code> ובגישה לפי אינדקס, אך חסרות בה פונקציות רבות של Array.
+        </p>
+        <div class="two-col">
+          <div>
+            <h3>זמין ב-NodeList</h3>
+            <div class="code-block">items.length
+              items[0]
+              items.forEach()
+              items.item(0)</div>
+          </div>
+          <div>
+            <h3>זמין ב-Array בלבד</h3>
+            <div class="code-block">items.map() // X
+              items.filter() // X
+              items.find() // X
+              items.reduce() // X</div>
+          </div>
+        </div>
+        <h3>המרה למערך מלא</h3>
+        <div class="code-block">// דרך 1 — Array.from
+          const arr = Array.from(document.querySelectorAll(".item"));
+
+          // דרך 2 — spread operator
+          const arr2 = [...document.querySelectorAll(".item")];
+
+          // כעת זמינות כל פונקציות המערך:
+          const texts = arr.map(el => el.innerText);
+          const visible = arr.filter(el => el.style.display !== "none");</div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          <code>IEnumerable</code> מול <code>List&lt;T&gt;</code> — דומה מאוד.<br>
+          <code>Array.from(nodeList)</code> מקביל ל-<code>.ToList()</code> ב-LINQ.
+        </div>
+      </div>
+
+      <!-- Slide 7 -->
+      <div class="slide" id="slide-7">
+        <div class="slide-number">שקופית 7 מתוך 14</div>
+        <div class="tag">this</div>
+        <h2>this בהקשר ל-DOM</h2>
+        <p>
+          כאשר משתמשים בפונקציה רגילה (לא arrow function) כ-event handler,
+          <code>this</code> בתוך הפונקציה מצביע על <strong>האלמנט שהפעיל את האירוע</strong>.
+        </p>
+        <div class="code-block">const buttons = document.querySelectorAll("button");
+
+          buttons.forEach(function(btn) {
+          btn.addEventListener("click", function() {
+          // this = הכפתור הספציפי שנלחץ
+          this.style.backgroundColor = "teal";
+          this.innerText = "נלחץ!";
+          });
+          });</div>
+        <p>
+          שימוש זה מאפשר לכתוב handler אחד שפועל על מספר אלמנטים,
+          כאשר כל אחד מטפל בעצמו בלבד — ללא צורך לזהות איזה אלמנט נלחץ.
+        </p>
+        <div class="note">
+          חשוב לשים לב: ערך <code>this</code> ב-JavaScript נקבע <strong>בזמן ריצה</strong>
+          לפי אופן הקריאה לפונקציה, לא לפי מיקום הגדרתה.
+          בפונקציות חץ, <code>this</code> מתנהג אחרת — ראו שקופית הבאה.
+        </div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          ב-C#: <code>this</code> תמיד מצביע על המחלקה הנוכחית — ערך קבוע ויציב.<br>
+          ב-JS: <code>this</code> הוא דינמי — ערכו נקבע לפי ההקשר בזמן הקריאה.
+        </div>
+      </div>
+
+      <!-- Slide 8 -->
+      <div class="slide" id="slide-8">
+        <div class="slide-number">שקופית 8 מתוך 14</div>
+        <div class="tag">Arrow Function and this</div>
+        <h2>פונקציות חץ והקשר ל-this</h2>
+        <p>
+          פונקציית חץ <strong>אינה יוצרת הקשר this משלה</strong> —
+          היא יורשת את <code>this</code> מהסביבה החיצונית שבה הוגדרה.
+          לכן כ-event handler, <code>this</code> לא יצביע על האלמנט.
+        </p>
+        <div class="code-block">// פונקציה רגילה — this = האלמנט שנלחץ
+          btn.addEventListener("click", function() {
+          console.log(this); // &lt;button&gt;...&lt;/button&gt;
+          });
+
+          // Arrow function — this אינו האלמנט!
+          btn.addEventListener("click", () => {
+          console.log(this); // Window (או undefined ב-strict mode)
+          });</div>
+        <h3>הפתרון: שימוש ב-event object</h3>
+        <div class="code-block">btn.addEventListener("click", (e) => {
+          // e.currentTarget = האלמנט שה-listener מחובר אליו
+          e.currentTarget.style.backgroundColor = "teal";
+
+          // e.target = האלמנט שנלחץ בפועל
+          // (עשוי להיות שונה בעת bubble של אירוע)
+          console.log(e.target);
+          });</div>
+        <div class="compare-box">
+          <strong>כלל מעשי:</strong><br>
+          בשימוש ב-arrow function — יש להשתמש ב-<code>e.currentTarget</code> במקום <code>this</code>.<br>
+          בשימוש בפונקציה רגילה — ניתן להשתמש ב-<code>this</code> ישירות.
+        </div>
+      </div>
+
+      <!-- Slide 9 -->
+      <div class="slide" id="slide-9">
+        <div class="slide-number">שקופית 9 מתוך 14</div>
+        <div class="tag">DOM Traversal</div>
+        <h2>טיול על ה-DOM (DOM Traversal)</h2>
+        <p>
+          לאחר בחירת אלמנט, ניתן לנוע ממנו לאלמנטים קרובים בעץ
+          דרך מאפיינים מובנים — ללא חיפוש מחדש ב-document.
+        </p>
+        <div class="code-block">const item = document.querySelector(".selected");
+
+          // אלמנט אב:
+          item.parentElement;
+
+          // ילדים ישירים:
+          item.children; // HTMLCollection — רק אלמנטים
+          item.childNodes; // NodeList — כולל טקסט ו-whitespace
+
+          // אחים:
+          item.nextElementSibling;
+          item.previousElementSibling;
+
+          // ילד ראשון / אחרון:
+          item.firstElementChild;
+          item.lastElementChild;
+
+            //מביא את אלמנט ה אב הקרוב לפי הסלקטור הנשלח
+          item.closest(selector) — מחפש את האלמנט הקרוב ביותר שמתאים לבחירה.
+
+
+
+        </div>
+        <h3>דוגמת שימוש — סימון ילדי רשימה</h3>
+        <div class="code-block">const list = document.getElementById("myList");
+
+          Array.from(list.children).forEach((child, i) => {
+          child.classList.add("visible");
+          child.dataset.index = i; // שמירת נתון ב-data attribute
+          });</div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          ב-WPF: <code>VisualTreeHelper.GetParent(element)</code><br>
+          ב-JS: <code>element.parentElement</code> — ישיר ופשוט יותר.
+        </div>
+      </div>
+
+      <!-- Slide 10 -->
+      <div class="slide" id="slide-10">
+        <div class="slide-number">שקופית 10 מתוך 14</div>
+        <div class="tag">יצירת אלמנטים</div>
+        <h2>createElement — יצירת אלמנטים חדשים</h2>
+        <p>
+          <code>document.createElement</code> יוצר אלמנט HTML חדש בזיכרון.
+          האלמנט אינו מוצג בדף עד שמוסיפים אותו ל-DOM בפירוש.
+        </p>
+        <div class="code-block">// יצירת אלמנטים:
+          const newDiv = document.createElement("div");
+          const newBtn = document.createElement("button");
+          const newP = document.createElement("p");
+
+          // הגדרת תוכן:
+          newP.innerText = "פסקה שנוצרה דינמית";
+
+          // הגדרת מאפיינים:
+          newBtn.innerText = "לחץ כאן";
+          newBtn.id = "myNewBtn";
+          newBtn.classList.add("primary-btn");
+
+          // הגדרת style:
+          newDiv.style.backgroundColor = "#e8f4f4";
+          newDiv.style.padding = "12px";
+          newDiv.style.borderRadius = "8px";
+
+          // ניתן לחבר אירוע לפני הוספה לדף:
+          newBtn.addEventListener("click", () => {
+          alert("כפתור נוצר דינמית!");
+          });</div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          WinForms: <code>Button btn = new Button(); btn.Text = "לחץ"; this.Controls.Add(btn);</code><br>
+          JS:
+          <code>const btn = document.createElement("button"); btn.innerText = "לחץ"; container.append(btn);</code><br>
+          הדפוס זהה — יצירה, הגדרת מאפיינים, הוספה למיכל.
+        </div>
+      </div>
+
+      <!-- Slide 11 -->
+      <div class="slide" id="slide-11">
+        <div class="slide-number">שקופית 11 מתוך 14</div>
+        <div class="tag">הוספה ל-DOM</div>
+        <h2>append ו-appendChild — הוספה ל-DOM</h2>
+        <p>לאחר יצירת אלמנט, יש להוסיפו ל-DOM כדי שיופיע בדף:</p>
+        <div class="code-block">const container = document.getElementById("container");
+          const newItem = document.createElement("li");
+          newItem.innerText = "פריט חדש";
+
+          // appendChild — ותיק יותר, מקבל Node אחד, מחזיר אותו
+          container.appendChild(newItem);
+
+          // append — מודרני, מקבל מספר ארגומנטים וגם מחרוזות
+          container.append(newItem);
+          container.append("טקסט ישיר", anotherNode);
+
+          // prepend — הוספה בתחילת המיכל
+          container.prepend(newItem);
+
+          // insertBefore — הוספה לפני אלמנט קיים
+          const ref = document.getElementById("refItem");
+          container.insertBefore(newItem, ref);</div>
+        <div class="two-col">
+          <div>
+            <h3>append (מודרני)</h3>
+            <div class="code-block">// Nodes + מחרוזות
+              // מספר ארגומנטים
+              // ללא ערך חוזר</div>
+          </div>
+          <div>
+            <h3>appendChild (ותיק)</h3>
+            <div class="code-block">// Node בלבד
+              // ארגומנט אחד
+              // מחזיר את ה-Node</div>
+          </div>
+        </div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          WinForms: <code>this.Controls.Add(btn);</code><br>
+          JS: <code>container.append(btn);</code> — דפוס זהה.
+        </div>
+      </div>
+
+      <!-- Slide 12 -->
+      <div class="slide" id="slide-12">
+        <div class="slide-number">שקופית 12 מתוך 14</div>
+        <div class="tag">מבנה דינמי</div>
+        <h2>בניית מבנה דינמי</h2>
+        <p>
+          ניתן לבנות רשימות ומבנים שלמים בלולאה, תוך שילוב של יצירת אלמנטים,
+          הגדרת מאפיינים וחיבור אירועים — לפני ההוספה ל-DOM.
+        </p>
+        <div class="code-block">const data = ["ינואר", "פברואר", "מרץ", "אפריל"];
+          const ul = document.createElement("ul");
+
+          data.forEach((month, index) => {
+          const li = document.createElement("li");
+          li.innerText = month;
+          li.dataset.index = index; // data attribute
+
+          li.addEventListener("click", function() {
+          this.classList.toggle("selected");
+          });
+
+          ul.appendChild(li); // מוסיף ל-ul בזיכרון
+          });
+
+          // הוספה ל-DOM פעם אחת — יעיל!
+          document.getElementById("container").append(ul);</div>
+        <div class="note">
+          מומלץ לבנות את כל המבנה בזיכרון ולהוסיפו <strong>בפעולה אחת</strong> ל-DOM.
+          הוספה של כל אלמנט בנפרד גורמת ל-reflow חוזר ופוגעת בביצועים.
+        </div>
+        <div class="compare-box">
+          <strong>השוואה ל-C#:</strong><br>
+          WinForms: <code>listBox1.Items.AddRange(array);</code><br>
+          JS: בניית אלמנטים בלולאה + append פעם אחת — אותו עיקרון של batch update.
+        </div>
+      </div>
+
+      <!-- Slide 13 -->
+      <div class="slide" id="slide-13">
+        <div class="slide-number">שקופית 13 מתוך 14</div>
+        <div class="tag">תרגול משולב</div>
+        <h2>תרגול משולב — שליפה, אירועים, יצירה</h2>
+        <p>
+          תרגיל זה משלב שליפת אלמנטים, האזנה לאירועים,
+          קבלת קלט ויצירת אלמנטים חדשים ב-DOM.
+        </p>
+        <div class="code-block">// HTML:
+          // &lt;input id="taskInput" placeholder="הכנס משימה" /&gt;
+          // &lt;button id="addBtn"&gt;הוסף&lt;/button&gt;
+          // &lt;ul id="taskList"&gt;&lt;/ul&gt;
+
+          const addBtn = document.getElementById("addBtn");
+          const input = document.getElementById("taskInput");
+          const list = document.getElementById("taskList");
+
+          addBtn.addEventListener("click", () => {
+          const text = input.value.trim();
+          if (!text) return;
+
+          const li = document.createElement("li");
+          li.innerText = text;
+
+          const del = document.createElement("button");
+          del.innerText = "X";
+          del.addEventListener("click", () => li.remove());
+
+          li.appendChild(del);
+          list.appendChild(li);
+
+          input.value = "";
+          input.focus();
+          });</div>
+      </div>
+
+      <!-- Slide 14 -->
+      <div class="slide" id="slide-14">
+        <div class="slide-number">שקופית 14 מתוך 14</div>
+        <div class="tag">תרגול מתקדם</div>
+        <h2>תרגול מתקדם — רשימה דינמית עם סינון</h2>
+        <p>
+          תרחיש אמיתי: רשימת פריטים עם יכולת סינון חי לפי קלט המשתמש.
+          שילוב של querySelectorAll, forEach, ערכי input ועדכון ה-DOM.
+        </p>
+        <div class="code-block">// HTML:
+          // &lt;input id="search" placeholder="חפש..." /&gt;
+          // &lt;ul id="itemList"&gt;
+          // &lt;li&gt;תפוח&lt;/li&gt;&lt;li&gt;בננה&lt;/li&gt;&lt;li&gt;תפוז&lt;/li&gt;
+          // &lt;/ul&gt;
+          // &lt;p id="noResults" style="display:none"&gt;אין תוצאות&lt;/p&gt;
+
+          const search = document.getElementById("search");
+
+          search.addEventListener("input", () => {
+          const term = search.value.toLowerCase().trim();
+          const items = document.querySelectorAll("#itemList li");
+
+          items.forEach(item => {
+          const match = item.innerText.toLowerCase().includes(term);
+          item.style.display = match ? "list-item" : "none";
+          });
+
+          const visible = [...items].filter(i => i.style.display !== "none");
+          const msg = document.getElementById("noResults");
+          if (msg) msg.style.display = visible.length === 0 ? "block" : "none";
+          });</div>
+        <div class="compare-box">
+          <strong>עיקרון מנחה לסיכום:</strong><br>
+          כל אפליקציית web בנויה על שלושה שלבים: <strong>בחר אלמנט — האזן לאירוע — שנה את ה-DOM</strong>.<br>
+          querySelectorAll, forEach, createElement ו-append הם הכלים הבסיסיים ליישום עיקרון זה.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="nav-bar">
+      <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>הקודם</button>
+      <div class="progress-area">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">שקופית 1 מתוך 14</div>
+      </div>
+      <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">הבא</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 1;
+    const total = 14;
+
+    function updateUI() {
+      document.getElementById("prevBtn").disabled = current === 1;
+      document.getElementById("nextBtn").disabled = current === total;
+      const pct = ((current - 1) / (total - 1)) * 100;
+      document.getElementById("progressFill").style.width = pct + "%";
+      document.getElementById("progressLabel").textContent = "שקופית " + current + " מתוך " + total;
+    }
+
+    function changeSlide(dir) {
+      document.getElementById("slide-" + current).classList.remove("active");
+      current += dir;
+      document.getElementById("slide-" + current).classList.add("active");
+      updateUI();
+    }
+
+    function goTo(n) {
+      document.getElementById("slide-" + current).classList.remove("active");
+      current = n;
+      document.getElementById("slide-" + current).classList.add("active");
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+</body>
+
+</html>
