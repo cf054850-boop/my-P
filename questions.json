@@ -1,6 +1,20 @@
 {
-    "speed": 3,
-    "gravity": 0.3,
-    "jump": -6,
-    "pipeSpawnRate": 2000
+    "easy": {
+        "speed": 2,
+        "gravity": 0.25,
+        "jump": -5.5,
+        "pipeSpawnRate": 2500
+    },
+    "medium": {
+        "speed": 3,
+        "gravity": 0.3,
+        "jump": -6,
+        "pipeSpawnRate": 2000
+    },
+    "hard": {
+        "speed": 4.5,
+        "gravity": 0.35,
+        "jump": -6.5,
+        "pipeSpawnRate": 1500
+    }
 }

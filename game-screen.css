@@ -1,0 +1,113 @@
+/* ==========================================================================
+   עיצוב זירת המשחק הפעיל (game-screen.css)
+   ========================================================================== */
+
+/* עיצוב ה-HUD: סרגל הנתונים העליון (שם שחקן, רמות קושי וניקוד) */
+.game-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(47, 54, 64, 0.85);
+    backdrop-filter: blur(5px);
+    color: #ffffff;
+    padding: 14px 20px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: absolute;
+    top: 20px;
+    z-index: 100;
+}
+
+.hud-item span {
+    color: #fbc531; /* צביעת הניקוד והשם בצהוב זוהר */
+    font-size: 18px;
+}
+
+/* --- עיצוב כפתורי רמת הקושי בתוך ה-HUD --- */
+.difficulty-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.diff-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.diff-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* הכפתור שנבחר כרגע מקבל צבע צהוב זוהר ומודגש */
+.diff-btn.active {
+    background: #fbc531;
+    color: #2f043e;
+    border-color: #fbc531;
+    box-shadow: 0 0 8px rgba(251, 197, 49, 0.6);
+}
+
+/* --- קופסת המשחק המרכזית (השמיים והרכיבים) --- */
+#game-box {
+    width: 100vw;
+    height: 100vh;
+    max-width: 480px;
+    max-height: 640px;
+    /* גרדיאנט שמיים צבעוני ועמוק */
+    background: linear-gradient(to bottom, #3ae374, #3dd1e7);
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    border: 4px solid #ffffff;
+}
+
+/* התאמת צבעי השמיים למצב כהה (Dark Mode) אוטומטי */
+body.dark-mode #game-box {
+    background: linear-gradient(to bottom, #1e1b4b, #311042);
+    border-color: #00d2ff;
+    box-shadow: 0 15px 40px rgba(0, 210, 255, 0.2);
+}
+
+/* עיצוב הציפור (השחקן) */
+#bird {
+    width: 45px;
+    height: 35px;
+    position: absolute;
+    left: 80px;
+    top: 250px;
+    z-index: 10;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    transition: transform 0.1s ease;
+}
+
+/* עיצוב הצינורות (המכשולים) - מראה תלת-ממדי ומקצועי */
+.pipe {
+    width: 60px;
+    /* ירוק ארקייד קלאסי עם גרדיאנט למראה נפח */
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    border: 3px solid #1e272e;
+    position: absolute;
+    z-index: 5;
+    border-radius: 8px;
+    box-shadow: inset -8px 0 0 rgba(0, 0, 0, 0.15), 4px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* שינוי עיצוב הצינורות במצב כהה למראה ניאון עתידני */
+body.dark-mode .pipe {
+    background: linear-gradient(to right, #ff007f, #99004c);
+    border-color: #00d2ff;
+    box-shadow: inset -8px 0 0 rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 0, 127, 0.4);
+}

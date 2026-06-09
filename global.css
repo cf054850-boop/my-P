@@ -1,0 +1,71 @@
+:root {
+    --bg-gradient: linear-gradient(135deg, #eef2f7, #dce4ec, #cbd5e1);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-color: #2d3436;
+    --accent-color: #4cd137;
+}
+
+body.dark-mode {
+    --bg-gradient: linear-gradient(135deg, #0b091a, #131033, #1f1a52);
+    --card-bg: rgba(20, 16, 46, 0.9);
+    --text-color: #f5f6fa;
+    --accent-color: #00d2ff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    transition: background 0.3s ease;
+}
+
+.screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 440px;
+    transition: all 0.3s ease;
+}
+
+.btn-main {
+    background: #4cd137;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-main:hover {
+    background: #44bd32;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 209, 55, 0.4);
+}

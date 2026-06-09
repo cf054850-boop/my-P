@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הציפור הנועזת - פרויקט גמר</title>
-    <link rel="stylesheet" href="style.css">
+    <title>הציפור הנועזת - התחברות</title>
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="game-screen.css">
 </head>
 <body>
 
@@ -30,57 +32,21 @@
                     <input type="password" id="password" placeholder="••••••••" required>
                     <span class="error-msg" id="password-error" style="color: #ff4d4d; font-size: 12px; display: none; margin-top: 4px; text-align: right;">הסיסמה חייבת להכיל לפחות 6 תווים, הכוללים גם אותיות וגם מספרים</span>
                 </div>
+
+                <div class="input-group" style="text-align: center; margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; text-align: right;">בחר רמת קושי:</label>
+                    <div class="difficulty-controls" style="justify-content: center;">
+                        <button type="button" class="diff-btn" id="btn-easy">קל</button>
+                        <button type="button" class="diff-btn active" id="btn-medium">בינוני</button>
+                        <button type="button" class="diff-btn" id="btn-hard">קשה</button>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn-main">התחבר והתחל לשחק</button>
             </form>
         </div>
     </div>
 
-    <div id="screen-game" class="screen">
-        <div class="game-hud">
-            <div class="hud-item">שחקן: <span id="hud-username">-</span></div>
-            <div class="hud-item">ניקוד: <span id="hud-score">0</span></div>
-        </div>
-        <div id="game-box">
-            <div id="bird">
-                <svg viewBox="0 0 100 80" width="100%" height="100%">
-                    <ellipse cx="50" cy="40" rx="35" ry="28" fill="#fbc531" stroke="#2f3640" stroke-width="3"/>
-                    <circle cx="70" cy="32" r="9" fill="white" stroke="#2f3640" stroke-width="2"/>
-                    <circle cx="73" cy="32" r="4" fill="black"/>
-                    <path d="M78 38 L95 44 L75 50 Z" fill="#e17055" stroke="#2f3640" stroke-width="2"/>
-                    <ellipse cx="40" cy="45" rx="16" ry="10" fill="white" stroke="#2f3640" stroke-width="2"/>
-                </svg>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-gameover" class="screen">
-        <div class="card">
-            <h1 class="gameover-title">המשחק נגמר! 💥</h1>
-            <p class="final-score-text">הניקוד שלך: <span id="final-score">0</span></p>
-            
-            <h3>טבלת מובילים</h3>
-            <div class="search-box">
-                <input type="text" id="search-player" placeholder="🔍 חפש שחקן בטבלה...">
-            </div>
-            <div class="table-container">
-                <table id="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>מיקום</th>
-                            <th>שם שחקן</th>
-                            <th>ניקוד</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                    </tbody>
-                </table>
-            </div>
-            
-            <button id="btn-restart" class="btn-main">משחק חדש 🔄</button>
-        </div>
-    </div>
-
     <script src="main.js"></script>
-    <script src="game.js"></script>
 </body>
 </html>
